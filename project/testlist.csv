@@ -1,0 +1,677 @@
+Sr.,Test Name,Rates,Sample Required,Delivery Time
+
+
+
+1,Fluid ADA Level,4500/Rs,Pleural Fluid,24 hrs
+2,Immature platelet fraction (IPF),2200/Rs,3 cc EDTA BLOOD,48 hrs
+3,(BSF)Blood Sugar Fasting,100/Rs,2 CC Sodium Foloride,2 hrs
+4,(BSR)Blood Sugar Random,100/Rs,2 CC Sodium Foloride,2 hrs
+5,(TG)Triglycerides,300/Rs,3 CC-Clotted Blood/Serum,3 hrs
+6,17-OHP (17-HYDROXYPROGESTERON),2500/Rs,5 cc Clotted Blood/Serum,48 hrs
+7,24 Hours Urinary Albumin,500/Rs,Urine 20 - 25ml,24 hrs
+8,24 Hours Urinary Amylase,3000/Rs,20-30 ml urine,6 hrs
+9,24 Hours Urinary Calcium,500/Rs,20-30 ml urine,6 hrs
+10,24 Hours Urinary Chloride,500/Rs,20-30 ml urine,48 hrs
+11,24 Hours Urinary Cortisol,2000/Rs,20-30 ml urine,6 hrs
+12,24 Hours Urinary Creatinine,600/Rs,20-30 ml urine,6 hrs
+13,24 Hours Urinary Glucose,300/Rs,20-30 ml urine,600 hrs
+14,24 Hours Urinary Magnesium,600/Rs,20-30 ml urine,48 hrs
+15,24 Hours Urinary Phosphorous,600/Rs,20-30 ml urine,48 hrs
+16,24 Hours Urinary Potassium,600/Rs,20-30 ml urine,12 hrs
+17,24 Hours Urinary Protein,600/Rs,20-30 ml urine,6 hrs
+18,24 Hours Urinary Sodium,600/Rs,20-30 ml urine,6 hrs
+19,24 Hours Urinary Urea,600/Rs,20-30 ml urine,6 hrs
+20,24 Hours Urinary Uric Acid,600/Rs,20-30 ml urine,6 hrs
+21,24 hours URINE FOR PROTCIN AND CREATININE,2200/Rs,,hrs
+22,24 Hrs.Urine for VMA (Vanillymandellic Acid),1500/Rs,24 hour urine,48 hrs
+23,24-Hour Urine Protein,300/Rs,24 Hrs urine sample,4 hrs
+24,25 - Hydroxy Vitamin - D,2800/Rs,2-3 cc Clotted Blood or serum,3 hrs
+25,A / G Ratio,400/Rs,3-5 cc Clotted Blood or Serum,10 hrs
+26,aa,aa/Rs,aa,1 hrs
+27,Abscess for Culture and Sensitivity with Gram Stain,1700/Rs,Pus, Abscess material,96 hrs
+28,Absolute Eosinophil Count,500/Rs,3 CC EDTA BLOOD (CBC VIAL),2 hrs
+29,Absolute Lymphocytes Count,500/Rs,3-5 cc Clotted Blood or Serum,2 hrs
+30,absolute Neutrophil,500/Rs,3-5 cc Clotted Blood or Serum,15 hrs
+31,ACE (Angiotensin Converting Enzyme),2500/Rs,3-5 cc Clotted Blood or Serum,96 hrs
+32,Acid Phosphatase,1300/Rs,3-5 cc Clotted Blood or Serum,72 hrs
+33,ACRA(Acetylcholine Receptor Abs),7500/Rs,3-5 cc Clotted Blood or Serum,72 hrs
+34,ACTH(Adrenocorticotropic Hormone),2800/Rs,3-5 cc Clotted Blood or Serum,96 hrs
+35,AFB C/S (Any Specimen)(First Report),3000/Rs,sample,24 hrs
+36,AFB C/S (Final Report After 7 Day),3000/Rs,sample,24 hrs
+37,AFB Culture Report (Pus),1500/Rs,Pus,72 hrs
+38,AFB Culture Report (Special),1500/Rs,As Required,72 hrs
+39,AFB Culture Report (Sputum 1st Day),1500/Rs,Sputum,72 hrs
+40,AFB Culture Report (Sputum 2nd Day),1500/Rs,Sputum,72 hrs
+41,AFB Culture Report (Sputum 3rd Day),1500/Rs,Sputum,72 hrs
+42,AFB Culture Report (Sputum),1500/Rs,Sputum,72 hrs
+
+
+
+43,Albumin (CSF),300/Rs,0.5 - 1 cc CSF,2 hrs
+44,Albumin (Fluid),300/Rs,1 CC Fluid,2 hrs
+45,Albumin (Serum),500/Rs,3 CC-Clotted Blood/Serum,2 hrs
+46,Aldosteron/Plasma Renin Ratio,5000/Rs,sample,48 hrs
+47,Aldosterone,2000/Rs,3-5 cc Clotted Blood or Serum,96 hrs
+48,Aldosterone(24 hr Urine),3000/Rs,24 hour urine,96 hrs
+49,Alkaline Phosphatase,200/Rs,3 CC-Clotted Blood/Serum,2 hrs
+50,ALLERGY DISORDERS(IgE),2000/Rs,Blood serum 2-3 ml,96 hrs
+51,Alpha 1-Antitrypsin Level,1800/Rs,3-5 cc Clotted Blood or Serum,96 hrs
+52,Alpha Fetoprotein (AFP),2500/Rs,2-3 cc Clotted Blood or serum,24 hrs
+53,ALT (SGPT),300/Rs,3 CC-Clotted Blood/Serum,3 hrs
+54,Ammonia (NH3),1500/Rs,sample,48 hrs
+55,Amylase (Spot Urine),500/Rs,sample,48 hrs
+56,Amylase Fluid,600/Rs,sample,4 hrs
+57,Amylase(Pancreatic),600/Rs,Clot or Serum 2 - 3 ml,48 hrs
+58,ANA,2500/Rs,5 cc Clotted Blood/Serum,48 hrs
+59,ANA (QNT),2000/Rs,3 cc Clotted Blood/Serum,hrs
+60,ANA by Immunoflourescence,3500/Rs,3-5 cc Clotted Blood or Serum,96 hrs
+61,ANA Profile by IF (ANA, ASMA, AMA,APCA),5500/Rs,3-5 cc Clotted Blood or Serum,96 hrs
+62,ANCA-c PR3(Proteinase 3),5700/Rs,3-5 cc Clotted Blood or Serum,96 hrs
+63,Antenatal Profile,15000/Rs,sample,48 hrs
+64,Anti cardiolipin IgG,3000/Rs,3-5 cc Clotted Blood or Serum,96 hrs
+65,Anti cardiolipin IgM,3000/Rs,3-5 cc Clotted Blood or Serum,96 hrs
+66,Anti CCP,2500/Rs,3-5 cc Clotted Blood or Serum,48 hrs
+67,Anti EBV IgG(Epstein Barr Virus),2800/Rs,3-5 cc Clotted Blood or Serum,72 hrs
+68,Anti EBV IgM(Epstein Barr Virus),2800/Rs,sample,48 hrs
+69,Anti Endomysial Abs,3000/Rs,3-5 cc Clotted Blood or Serum,72 hrs
+70,Anti Endomysial IgA,1700/Rs,3-5 cc Clotted Blood or Serum,72 hrs
+71,Anti Endomysial IgG,1700/Rs,3-5 cc Clotted Blood or Serum,72 hrs
+72,Anti Gliadin IgA,2000/Rs,3-5 cc Clotted Blood or Serum,72 hrs
+73,Anti Gliadin IgG,2000/Rs,3-5 cc Clotted Blood or Serum,72 hrs
+74,Anti H-Pylori ELISA,1200/Rs,3-5 cc Clotted Blood or Serum,2 hrs
+75,ANTI HBe,1500/Rs,3cc clotted blood/serum,12 hrs
+76,ANTI HBS/HBV,1600/Rs,3 cc Clotted Blood/Serum,hrs
+77,ANTI HCV BY ELISA,1200/Rs,3 CC-Clotted Blood/Serum,24 hrs
+78,Anti HDV,2200/Rs,3 cc Clotted Blood/Serum,96 hrs
+79,ANTI HDV ELISA,2200/Rs,2-3 cc Clotted Blood,96 hrs
+80,Anti HEV IgG,2000/Rs,48,96 hrs
+81,Anti HEV lgM,2000/Rs,sample,96 hrs
+82,Anti HIV-1/II (By ICT Method),600/Rs,3 CC-Clotted Blood/Serum,96 hrs
+83,Anti LKM (Liver Kidney Microsomal Abs),2500/Rs,sample,48 hrs
+84,Anti Microsomal Abs (AMA),2200/Rs,sample,48 hrs
+85,Anti Mitochondrial Antibody,1000/Rs,sample,48 hrs
+86,Anti Mullerian hormone (AMH),5200/Rs,3-5cc clottted blood/serum,96 hrs
+87,Anti Nuclear Factor(ANF),1000/Rs,Clot or Serum 2 - 3 ml,96 hrs
+88,Anti Parietal Cells Antibodies (APCA),3500/Rs,3 cc Clotted Blood/Serum,80 hrs
+89,Anti Phospholipid IgG,2000/Rs,sample,48 hrs
+90,Anti Phospholipid IgM,2000/Rs,sample,48 hrs
+91,Anti PLA 2R,5500/Rs,3 cc Clotted Blood/Serum,72 hrs
+92,Anti SCL-70,2200/Rs,sample,48 hrs
+93,Anti Sperm Antibodies(Serum),3000/Rs,3-5 cc Clotted Blood or Serum,168 hrs
+94,Anti Thrombin III Plasma,4400/Rs,sample,48 hrs
+95,Anti Thyroglobulin Abs(TG),1500/Rs,(Anti T.G) Clot 2-3ml,48 hrs
+
+
+
+96,ANTI THYROID ANTI BODIES,2500/Rs,,hrs
+97,Anti Thyroids Abs(ATA),2500/Rs,sample,48 hrs
+98,Anti Tissue Transglutaminase IgA,2000/Rs,3 - 5 CC Clotted Blood,96 hrs
+99,Anti Tissue Transglutaminase IgG,2000/Rs,3 - 5 CC Clotted Blood,96 hrs
+100,Anti Tissue Transglutaminase IgM,2000/Rs,3 CC-Clotted Blood/Serum,28 hrs
+101,Anti-Streptolysin O Titre (ASOT),800/Rs,Clot or Serum 2 - 3 ml,2 hrs
+102,Antibody Screening,800/Rs,sample,48 hrs
+103,API-20E For C/S e Gram Stain,1350/Rs,sample,48 hrs
+104,APTT Activated Partial Thromboplastin Time,600/Rs,3 CC-sodium citrate Blood,4 hrs
+105,Arterial Blood Gases(ABGs),900/Rs,sample,48 hrs
+106,Arthritis Profile,5400/Rs,sample,48 hrs
+107,Ascitic/Peritoneal Fluid Analysis,1350/Rs,Ascitic/peritoneal fluid,48 hrs
+108,ASMA TEST ( Anti-Smooth Muscle Antibody),2200/Rs,3cc clotted blood/serum,03 hrs
+109,AST (SGOT),300/Rs,3 CC-Clotted Blood/Serum,4 hrs
+110,Autoimmune Profile,5000/Rs,sample,48 hrs
+111,Autoimune Liver Disease Profile,5000/Rs,sample,48 hrs
+112,B/N Ratio,550/Rs,sample,48 hrs
+113,Basophils Count,300/Rs,sample,48 hrs
+114,BCR-ABL By PCR (Blood),19500/Rs,sample,48 hrs
+115,BCR-ABL Fish With History (Blood),8500/Rs,sample,48 hrs
+116,Bed Sore For Culture and Sensitivity with Gram Stain,1500/Rs,Scrappings,96 hrs
+117,Bence Jones Protein,500/Rs,urine,4 hrs
+118,Beta HCG (Female),1500/Rs,3 CC-Clotted Blood/Serum,4 hrs
+119,Beta HCG Male,1500/Rs,sample,4 hrs
+120,Beta-2 Microglobulin,2200/Rs,sample,48 hrs
+121,Bicarbonate (HCO3),500/Rs,2-3ml clotted blood/serum,96 hrs
+122,Bile Pigment Fluid,250/Rs,sample,48 hrs
+123,Bile Pigment Urine,200/Rs,sample,2 hrs
+124,Bile Salt Urine,200/Rs,sample,2 hrs
+125,Bilirubin Total,400/Rs,3 CC-Clotted Blood/Serum,4 hrs
+126,Bilirubin-Conj (Direct),400/Rs,3-5 ml clotted blood/serum,4 hrs
+127,Bilirubin-Conj (Indirect),800/Rs,3-5 ml clotted blood/serum,4 hrs
+128,Biochemistry Report,1200/Rs,2 CC,24 hrs
+129,Biopsy For H/P(Extra Large),5500/Rs,Sample in formalin,240 hrs
+130,Biopsy For H/P(Large Specimen),4500/Rs,Sample in formalin,240 hrs
+131,Biopsy For H/P(Medium),3000/Rs,Tissue in formalin,240 hrs
+132,Biopsy For H/P(one large & one small),),6500/Rs,Sample in formalin,240 hrs
+133,Biopsy For H/P(Small Specimen),2700/Rs,Sample in formalin,240 hrs
+134,Biopsy For H/P(Three or More Small),5200/Rs,Sample in formalin,240 hrs
+135,Biopsy For H/P(Two small),5000/Rs,in formalin,240 hrs
+136,Bleeding Time,200/Rs,sample,4 hrs
+137,Blood Cross Match,1000/Rs,Clot or serum 2 - 3 ml,4 hrs
+138,BLOOD CULTURE,2500/Rs,5cc in culture vail,120 hrs
+139,Blood For C/S,2500/Rs,sample,48 hrs
+140,Blood For C/S (Final Report),1100/Rs,sample,48 hrs
+141,Blood For C/S (Single Bottle),1100/Rs,sample,48 hrs
+142,Blood For Flow Cytometry,13000/Rs,sample,48 hrs
+143,Blood For Microfilaria,500/Rs,3 CC EDTA BLOOD (CBC VIAL),48 hrs
+144,BLOOD FOR PREGNACY,50/Rs,3cc EDTA&CLOTT BLOOD,hrs
+145,Blood Glucose Fasting,100/Rs,3 CC-Clotted Blood/Serum,1 hrs
+146,Blood Glucose Random,100/Rs,Clot or Serum 2 ml,1 hrs
+147,Blood Group,200/Rs,3 CC-EDTA Blood,3 hrs
+148,Blood Sugar 1 1/2 Hrs (After 100 Gram Glucose),100/Rs,2 CC Clotted Blood,2 hrs
+
+
+
+149,Blood Sugar 1 1/2 Hrs (After 75 Gram Glucose),100/Rs,2 CC Clotted Blood,2 hrs
+150,Blood Sugar 1 1/2 Hrs PP,100/Rs,2 CC Clotted Blood,2 hrs
+151,Blood Sugar 1 Hrs (After 100 Gram Glucose),100/Rs,2 CC Clotted Blood,2 hrs
+152,Blood Sugar 1 Hrs (After 50 Gram Glucose),100/Rs,2 CC Clotted Blood,2 hrs
+153,Blood Sugar 1 Hrs (After 75 Gram Glucose),100/Rs,2 CC Clotted Blood,2 hrs
+154,Blood Sugar 1 Hrs PP,100/Rs,2 CC Clotted Blood,2 hrs
+155,Blood Sugar 1/2 Hrs (After 100 Gram Glucose),100/Rs,2 CC Clotted Blood,2 hrs
+156,Blood Sugar 1/2 Hrs (After 50Gram Glucose),100/Rs,2 CC Clotted Blood,2 hrs
+157,Blood Sugar 1/2 Hrs (After 70Gram Glucose),100/Rs,2 CC Clotted Blood,2 hrs
+158,Blood Sugar 1/2 Hrs PP,100/Rs,2 CC Clotted Blood,2 hrs
+159,Blood Sugar 2 1/2 Hrs (After 100 Gram Glucose),100/Rs,2 CC Clotted Blood,2 hrs
+160,Blood Sugar 2 1/2 Hrs PP,100/Rs,2 CC Clotted Blood,2 hrs
+161,Blood Sugar 2 Hrs,100/Rs,2 CC Clotted Blood,2 hrs
+162,Blood Sugar 2 Hrs (After 100 Gram Glucose),100/Rs,2 CC Clotted Blood,2 hrs
+163,Blood Sugar 2 Hrs (After 50 Gram Glucose),100/Rs,2 CC Clotted Blood,2 hrs
+164,Blood Sugar 2 Hrs (After 75 Gram Glucose),100/Rs,2 CC Clotted Blood,2 hrs
+165,Blood Sugar 2 Hrs (After Diner),100/Rs,2 CC Clotted Blood,2 hrs
+166,Blood Sugar 2 Hrs (After Lunch),100/Rs,2 CC Clotted Blood,2 hrs
+167,Blood Sugar 2 Hrs PP,100/Rs,2 CC Clotted Blood,2 hrs
+168,Blood Sugar 3 Hrs (After 100 Gram Glucose),100/Rs,2 CC Clotted Blood,2 hrs
+169,Blood Sugar 3 Hrs (After 75 Gram Glucose),100/Rs,2 CC Clotted Blood,2 hrs
+170,Blood Sugar 3 Hrs PP,100/Rs,2 CC Clotted Blood,2 hrs
+171,Blood Sugar 4 Hrs PP,100/Rs,2 CC Clotted Blood,2 hrs
+172,Blood Sugar 5 Hrs PP,100/Rs,2 CC Clotted Blood,2 hrs
+173,BLOOD UREA,300/Rs,3 CC-Clotted Blood/Serum,1 hrs
+174,Blood Urea Nitrogen,200/Rs,2 - 3 CC Clotted Blood,2 hrs
+175,BNP,2200/Rs,3 CC EDTA BLOOD (CBC VIAL),72 hrs
+176,Bone Marrow Examination,5000/Rs,Prepared slides,240 hrs
+177,Bone Trephine Biopsy,4500/Rs,Tissue,240 hrs
+178,BREAST RECEPTORS (ER,PR,H2N),7000/Rs,Fixed Sample in Formalin,120 hrs
+179,Bronchial Washing For AFB C/S,3000/Rs,sample,48 hrs
+180,Bronchial Washing For AFB C/S ZN Smear,350/Rs,sample,48 hrs
+181,Bronchial Washing For Anylase,1350/Rs,sample,48 hrs
+182,Buccal Smear For Barr Bodies,1000/Rs,sample,4 hrs
+183,C Reactive Protein,800/Rs,2-3 CC Blood in Clotted Vial,2 hrs
+184,C Reactive Protein (Quantative),1300/Rs,3-4 cc cltted blood/ serum,4 hrs
+185,C-3,2000/Rs,sample,48 hrs
+186,C-4,2000/Rs,3 - 5 CC Clotted Blood,72 hrs
+187,C-Peptide Level,2000/Rs,3-5 ml clotted blood/serum,96 hrs
+188,C2 Monitoring (Whole blood),5700/Rs,3cc EDTA BLOOD (CBC VIAL,48 hrs
+189,C3 (Complement level 3),2200/Rs,3-5 cc Clotted Blood or Serum,72 hrs
+190,C4 (Complement level 4),2000/Rs,3-5 cc Clotted Blood or Serum,72 hrs
+191,CA 15-3 (Tumor Marker Report),2000/Rs,,48 hrs
+192,CA 19-9,2000/Rs,3 - 5 CC Clotted Blood,72 hrs
+193,CA-125 TEST,2500/Rs,,90 hrs
+194,Calcium,500/Rs,Clot or Serum 2 - 3 ml,2 hrs
+195,Calcium Ionized,1000/Rs,3 - 5 CC Clotted Blood,72 hrs
+196,Calcuim (Spot Urine),500/Rs,sample,2 hrs
+197,Calcuim (Urine),500/Rs,sample,2 hrs
+198,Calcuim / Creatinine Ratio,1000/Rs,2-3 cc Clotted Blood or serum,48 hrs
+199,Cannabinoids (THC),1450/Rs,Urine Specimen/Spot urine,48 hrs
+200,Cardiac Enzyme,2300/Rs,3 CC-Clotted Blood/Serum,4 hrs
+201,Cardiac Enzymes(CPK),2300/Rs,3 CC-Clotted Blood/Serum,4 hrs
+
+
+
+202,Catecholamines Group Test,7500/Rs,sample,48 hrs
+203,CBC Coulter only,200/Rs,3-5 ml blood in EDTA vial,2 hrs
+204,CBC-Peripheral Blood Morphology,1000/Rs,3-5 cc EDTA Blood,3 hrs
+205,CD Profile E History,10000/Rs,sample,24 hrs
+206,CD-3,2000/Rs,Prepare Blocks,96 hrs
+207,CD-4,2000/Rs,Prepare Blocks,96 hrs
+208,CD-8,2000/Rs,Prepare Blocks,96 hrs
+209,CEA(Carcinoembryonic Antigen),3000/Rs,3 - 5 CC Clotted Blood,96 hrs
+210,Cerebrospinal fluid (CSF),2200/Rs,Synovial Fluid,48 hrs
+211,CERULOPLASMIN,2500/Rs,3 - 5 CC Clotted Blood,72 hrs
+212,Cervical Swab For AFB C/S,3000/Rs,sample,48 hrs
+213,Cervical Swab For AFB Smear,350/Rs,sample,24 hrs
+214,Cervical Swab For C/S e Gram Stain,1350/Rs,sample,48 hrs
+215,Cervical Swab For Fungus,600/Rs,sample,48 hrs
+216,Chlamydia IgG (Serum),2400/Rs,3 - 5 CC Clotted Blood,96 hrs
+217,Chlamydia IgM(serum),2400/Rs,3 - 5 CC Clotted Blood,96 hrs
+218,Chloride Serum,600/Rs,3 CC-Clotted Blood/Serum,72 hrs
+219,Chloride(24 Hrs Urine),600/Rs,sample,72 hrs
+220,Chloride(Fluid),600/Rs,sample,72 hrs
+221,Chloride(Spot Urine),600/Rs,sample,72 hrs
+222,Chloride/Creatinine Ratio,1000/Rs,2-3 cc Clotted Blood or serum,48 hrs
+223,Cholestrol,300/Rs,3 CC-Clotted Blood/Serum,4 hrs
+224,Cholestrol(Fluid),400/Rs,sample,4 hrs
+225,Cholestrol/LDL Cholestrol Ratio,900/Rs,sample,3 hrs
+226,Citrate Level,2500/Rs,sample,48 hrs
+227,CK-MB,1000/Rs,Clot or serum 2 - 3 ml,3 hrs
+228,Clostridium Difficile Toxin,800/Rs,,24 hrs
+229,Clotting Time,200/Rs,Contact Lab,2 hrs
+230,Clotting time & bleeding time,400/Rs,2-3 Drops Of Spot Blood,12 hrs
+231,CMV DNA BY PCR,10500/Rs,10 CC EDTA WHOLE BLOOD,240 hrs
+232,CMV lgG,1200/Rs,3 CC EDTA BLOOD (CBC VIAL),72 hrs
+233,CMV lgM,1500/Rs,3 CC EDTA BLOOD (CBC VIAL),72 hrs
+234,Coagulation Profile,1000/Rs,3 CC-sodium citrate Blood,4 hrs
+235,Codeine(Spot Urine),1350/Rs,20-30 ml urine,96 hrs
+236,Cold Agglutination Test,800/Rs,3-5 cc Clotted Blood or Serum,24 hrs
+237,Combo HBs,2000/Rs,3-5 cc Clotted Blood or Serum,2 hrs
+238,Combs Test (Direct),800/Rs,3 CC EDTA BLOOD,6 hrs
+239,Combs Test (Indirect),800/Rs,3 EDTA Blood & 7 CC Clotted Blood,36 hrs
+240,Complete Blood Count(CBC),600/Rs,3 CC-EDTA Blood,2 hrs
+241,Coombs Profile,1000/Rs,sample,48 hrs
+242,Cooper (24 Hrs Urine),1500/Rs,sample,48 hrs
+243,Cooper (Serum),1500/Rs,sample,48 hrs
+244,Corneal For Gram Stain,350/Rs,sample,48 hrs
+245,Corrected Calcium (Serum ),500/Rs,3 CC-Clotted Blood/Serum,2 hrs
+246,Cortisol (A.M.),3000/Rs,3 - 5 CC Clotted Blood,36 hrs
+247,Cortisol (P.M.),2000/Rs,3 - 5 CC Clotted Blood,36 hrs
+248,Cortisole(Afternoon),1200/Rs,sample,24 hrs
+249,COVID ATNIBODY TEST (Igg) and (igm),3000/Rs,3cc Clotted Blood/Serum,20 hrs
+250,CPK,600/Rs,Clot or serum 2 - 3 ml,3 hrs
+251,Creatinine (Fluid),400/Rs,"Fluid, Aspirates, CSF, Urine, Brushing, Washings",2 hrs
+252,Creatinine Clearance,1000/Rs,24hr Urine & bl. clot 2ml,4 hrs
+253,Creatinine(24 Hrs Urine),400/Rs,3 - 5 ML Urine,8 hrs
+
+
+
+254,Creatinine(Spot Urine),400/Rs,3 - 5 ML Urine,8 hrs
+255,Cryoglobulin,600/Rs,sample,48 hrs
+256,CSF For Analysis,1350/Rs,,4 hrs
+257,CSF For Z.N. Stain,350/Rs,sample,48 hrs
+258,Culture & Sensitivity (Any Sample),1500/Rs,PUS, FLUID,BLOOD,96 hrs
+259,Culture Report (HVS),1500/Rs,HVS,96 hrs
+260,Culture Report (Pus),3000/Rs,Pus,96 hrs
+261,Culture Report (semen),1500/Rs,semen,96 hrs
+262,Culture Report (Special),1500/Rs,Miscellaneous,96 hrs
+263,Culture Report Endometrium,1500/Rs,Endometrium Curtting,96 hrs
+264,Culture Report(Blood),2500/Rs,Contact lab for Bottle,240 hrs
+265,Culture Report(CSF),1500/Rs,Fluid,96 hrs
+266,Culture Report(Stool),1500/Rs,Stool,96 hrs
+267,Culture Report(Throat Swab),1500/Rs,Throat Swab,96 hrs
+268,Culture Swab,1500/Rs,Miscellaneous,96 hrs
+269,Culture Water,1500/Rs,Fluid 4 - 5 ml,96 hrs
+270,Cyclosporin Level (CSP),5000/Rs,3 CC EDTA BLOOD,96 hrs
+271,Cytology Report (Outside Material),2000/Rs,Body Fluid/Swab/Slides,72 hrs
+272,Cytology slides for review,2000/Rs,Prepared slides,96 hrs
+273,Cytomegalovirus (IgG Antibodies),1500/Rs,Clot or Serum 2 - 3 ml,96 hrs
+274,Cytomegalovirus (IgM Antibodies),1500/Rs,Clot or Serum 2 - 3 ml,96 hrs
+275,D-Dimer,2000/Rs,Tri Sodium Citrate Tube (PT Vial),4 hrs
+276,DENGUE NS1,1500/Rs,3 cc Clotted Blood/Serum,hrs
+277,DHEA SO4,2000/Rs,,hrs
+278,Diabetes Profile,1750/Rs,3 EDTA Blood & 5 CC Clotted Blood,12 hrs
+279,Differential Leukocyte Count,200/Rs,2-3 CC EDTA Blood,2 hrs
+280,Differential Leukocyte Count,150/Rs,3-5 cc in EDTA Vial,6 hrs
+281,Digoxin,1400/Rs,3 - 5 CC Clotted Blood,36 hrs
+282,DLC,200/Rs,3-5 cc in EDTA Vial,02 hrs
+283,Drain For AFB CS(First Report),3000/Rs,sample,48 hrs
+284,Drain For AFB Smear/ZN Smear,350/Rs,sample,48 hrs
+285,Drain For Fungus C/S e Fungus,1350/Rs,sample,48 hrs
+286,Drain For Gram Stain,350/Rs,sample,48 hrs
+287,Drain Tip For AFB C/S (First Report),3000/Rs,sample,48 hrs
+288,Drain Tip for C/S e Gram Stain,1350/Rs,sample,48 hrs
+289,Drain Trip For Fungus C/S e Fungus,600/Rs,sample,48 hrs
+290,Drain Trip For Fungus Stain /Fungal,600/Rs,sample,48 hrs
+291,Drain Trip For Gram Stain,350/Rs,sample,48 hrs
+292,DS DNA,2200/Rs,sample,96 hrs
+293,ECG,600/Rs,,2 hrs
+294,Echinococcus Abs(IgG),2700/Rs,3 - 5 CC Clotted Blood,36 hrs
+295,ENA Quantrix 25 IgG,9000/Rs,3 CC-Clotted Blood/Serum,48 hrs
+296,Endocrinology (FSH),1500/Rs,3 CC-Clotted Blood/Serum,4 hrs
+297,Endocrinology (LH),1500/Rs,3 CC-Clotted Blood/Serum,2 hrs
+298,Endocrinology (Thyroxine),1000/Rs,3 CC-Clotted Blood/Serum,20 hrs
+299,Endocrinology (Tri-iodothyronine)),1000/Rs,3 CC-Clotted Blood/Serum,5 hrs
+300,Endocrinology(LH,FSH,PROLACTIN),4500/Rs,3 CC-Clotted Blood/Serum,45 hrs
+301,Eosinophils count,200/Rs,sample,2 hrs
+302,Erythropoietin (EPO),5500/Rs,3 - 5 CC Clotted Blood,36 hrs
+303,ESR(Erythrocyte Sedimentation Rate),200/Rs,3 CC-EDTA Blood,2 hrs
+304,Estradiol (Estrogen Level, E2),2000/Rs,3 - 5 CC Clotted Blood,72 hrs
+305,Estrogen Receptor,2000/Rs,Block,120 hrs
+306,ETT Tip For AFB C/S(First Report),3000/Rs,sample,48 hrs
+
+
+
+307,ETT Tip For AFB Smear/ZN Stain,350/Rs,sample,48 hrs
+308,ETT Tip For C/S e Gram Stain,1350/Rs,sample,48 hrs
+309,ETT Tip For Fungus C/S e Fungus,1350/Rs,sample,48 hrs
+310,ETT Tip For Gram Stain,350/Rs,sample,48 hrs
+311,Factor II Level,1800/Rs,sample,48 hrs
+312,Factor IX Level,1800/Rs,sample,48 hrs
+313,Factor V (Accelerator Globulin),1800/Rs,sample,48 hrs
+314,Factor VIII Level,1800/Rs,sample,48 hrs
+315,Factor X Level,1800/Rs,sample,48 hrs
+316,Factor XIII Level,3800/Rs,sample,48 hrs
+317,Fasting Lipid Profile,1500/Rs,3 CC-Clotted Blood/Serum,2 hrs
+318,FDPs,2000/Rs,sample,72 hrs
+319,Fecal Occult Blood,300/Rs,Stool specimen,24 hrs
+320,Fibrinogen Level (Factor-1),1500/Rs,sample,24 hrs
+321,Fine Needle Aspiration Cytology,2500/Rs,Sample taken at lab by Pathologist,96 hrs
+322,Fluid Analysis,1800/Rs,Fluid,24 hrs
+323,Fluid For AFB C/S(First Report),3000/Rs,sample,48 hrs
+324,Fluid For AFB Smear/ZN Stain,350/Rs,sample,48 hrs
+325,Fluid For AFB Smear/ZN Stain,500/Rs,Any fluid,4 hrs
+326,Fluid For C/S e Gram Stain,1350/Rs,sample,48 hrs
+327,Fluid for culture and sensitivity,1500/Rs,Any fluid,72 hrs
+328,Fluid For Fungus C/S e Fungus,1350/Rs,sample,48 hrs
+329,Fluid For FUngus Stain/Fungal Smear,600/Rs,sample,48 hrs
+330,Fluid For Gram Stain(Specimen),350/Rs,Any fluid,48 hrs
+331,Fluid For Malignant Cells,2000/Rs,"Fluid, Aspirates, CSF, Urine, Brushing, Washings",72 hrs
+332,Fluid For R.A Factor,500/Rs,Fluid,4 hrs
+333,FOLIC ACID,2000/Rs,3 CC-Clotted Blood/Serum,24 hrs
+334,Fooleys Tip For AFB C/S (FIRST REPORT),3000/Rs,sample,48 hrs
+335,Fooleys Tip For C/S e Gram Stain,1350/Rs,sample,48 hrs
+336,Fooleys Tip For Fungus C/S e Fungus,1350/Rs,sample,48 hrs
+337,Fooleys Tip For Fungus Stain/Fungal,600/Rs,sample,48 hrs
+338,Fooleys Tip For Gram Stain,350/Rs,sample,48 hrs
+339,Free Beta HCG,1500/Rs,Clot or Serum 2 - 3 ml,12 hrs
+340,Free T-3,1500/Rs,2 - 3 CC Clotted Blood,4 hrs
+341,Free T-4 (Free Thyroxine),1500/Rs,2 - 3 CC Clotted Blood,4 hrs
+342,FTA-ABS,5000/Rs,,4 hrs
+343,Fungus in (Any Other),1000/Rs,Contact Lab,4 hrs
+344,Fungus in Hair,1000/Rs,Contact Lab,4 hrs
+345,Fungus in Nail,1000/Rs,Contact Lab,4 hrs
+346,Fungus in Skin Scraping,1000/Rs,Contact Lab,4 hrs
+347,G6PD (Glucose 6 Phosphate Dehdrogenase),1500/Rs,sample,48 hrs
+348,Gamma GT,500/Rs,sample,48 hrs
+349,Gastric Aspirate For C/S e Gram Stain,1350/Rs,sample,48 hrs
+350,GCT 3 Hrs (Glucose Challenge Test),400/Rs,2 CC Clotted Blood,2 hrs
+351,GENOTYPE PCR TEST,3500/Rs,,hrs
+352,GFR Glomerular Filtration Rate,1000/Rs,3-5 ml clotted blood/serum,24 hrs
+353,GH (Growth Hormone),2500/Rs,3 - 5 CC Clotted Blood,48 hrs
+354,GIEMSA Stain,200/Rs,Body Fluid Sample,12 hrs
+355,Globulin,500/Rs,3-5cc Clotted Blood,24 hrs
+356,Glucose (1hr P.P),100/Rs,Clot or Serum 2 - 3 ml,1 hrs
+357,Glucose (2hr P.P),100/Rs,Clot or Serum 2 - 3 ml,1 hrs
+358,Glucose Challenge Test (GCT),400/Rs,Clot or Serum 2 - 3 ml,2 hrs
+
+
+
+359,Gram Stain,500/Rs,Fluids,96 hrs
+360,Gram Stain,500/Rs,Fluids,6 hrs
+361,Gram Stain Smear,1000/Rs,Fluids,2 hrs
+362,GTT (Glucose Tolerance Test),500/Rs,2-3ml clotted blood/serum,4 hrs
+363,Haemoglobin,50/Rs,2-3CC-EDTA Blood,2 hrs
+364,Haptoglobin Level,900/Rs,3-5cc Clotted Blood,75 hrs
+365,HAV IgG,2000/Rs,3-5cc Clotted Blood,24 hrs
+366,HAV IgM,2000/Rs,3-5cc Clotted Blood,24 hrs
+367,Hb-analysis by HPLC,2500/Rs,3cc EDTA Blood,96 hrs
+368,Hb-Electrophoresis,2500/Rs,2-3 CC EDTA Blood,48 hrs
+369,HbA Estimation,2500/Rs,3 - 4 cc EDTA Blood,96 hrs
+370,HbA1c(Glycosylated Hemoglobin),1500/Rs,2-3CC-EDTA Blood,4 hrs
+371,HbA2,2500/Rs,3 CC-EDTA Blood,96 hrs
+372,HBeAg ANTIGEN,1500/Rs,3cc clotted blood/serum,hrs
+373,HBeAg(ELISA),1500/Rs,3-5 cc Clotted Blood or Serum,48 hrs
+374,HbF,2500/Rs,3 CC-EDTA Blood,96 hrs
+375,HBs AG using Elisa Method,1200/Rs,3 CC-Clotted Blood/Serum,1 hrs
+376,HBS Antigen (ICT),300/Rs,Clot or serum 4 - 5 ml,1 hrs
+377,HBSag & HCV,600/Rs,3cc Clotted Blood/Serum,3 hrs
+378,HBV PCR QUANTITATIVE,4000/Rs,3 cc Clotted Blood/Serum,72 hrs
+379,HCT,100/Rs,3 CC EDTA BLOOD (CBC VIAL),2 hrs
+380,HCT(PCV),350/Rs,3 CC EDTA BLOOD (CBC VIAL),2 hrs
+381,HCV PCR GENOTYPE,4000/Rs,3 cc Clotted Blood/Serum,hrs
+382,HDL,500/Rs,sample,4 hrs
+383,HDV PCR QUALITATIVE,4500/Rs,Clot or serum 4 - 5 ml,144 hrs
+384,HDV PCR Quantitive,5500/Rs,3-5 cc Clotted Blood or Serum,96 hrs
+385,Helicobacter Pylori,500/Rs,2-3 CC-Clotted Blood/Serum,4 hrs
+386,Helicobactor Pylori Antibody (IgA),2000/Rs,3 - 5 CC Clotted Blood,144 hrs
+387,Helicobactor Pylori Antibody (IgG)),2000/Rs,Clot or serum 2 - 3 ml,144 hrs
+388,Helicobactor Pylori Antigen (Stool),1500/Rs,Stool,144 hrs
+389,hemoglobin(Spot Urine),200/Rs,sample,48 hrs
+390,Hep. A Antibody-IgM,1500/Rs,Clot or serum 3 - 5 ml,144 hrs
+391,Hep. Bs Antigen (ELISA),1200/Rs,3-5 cc Clotted Blood or Serum,24 hrs
+392,HEP.A IgG,2000/Rs,Clot or serum 2 - 3 ml,72 hrs
+393,Hep.B core IgG Antibody,2000/Rs,Clot or serum 4 - 5 ml,144 hrs
+394,Hep.B core IgM Antibody,2000/Rs,Clot or serum 4 - 5 ml,144 hrs
+395,Hep.Bc Antibody (Total),2000/Rs,Clot or serum 5 - 6 ml,144 hrs
+396,Hep.Be Antibody,2000/Rs,Clot or serum 2 - 3 ml,144 hrs
+397,Hep.Be Antigen,1500/Rs,Clot or serum 4 - 5 ml,144 hrs
+398,Hep.Bs Antibody,2000/Rs,Clot or serum 4 - 5 ml,144 hrs
+399,Hep.Bs Antigen,1500/Rs,Clot or serum 2 - 3 ml,24 hrs
+400,HEP.C Antibody(by ict method),300/Rs,Clot or serum 2 - 3 ml,1 hrs
+401,HEP.C VIRUS,150/Rs,3cc Clotted Blood/Serum,hrs
+402,Hep.E Antibody-IgM (ELISA),1500/Rs,Clot or serum 4 - 5 ml,72 hrs
+403,Her 2 Neu,2000/Rs,Prepared blocks,72 hrs
+404,HERPES SIMPLEX VIRUS(IGM),3000/Rs,Clot or serum 2 - 3 ml,144 hrs
+405,HIV ANTIBODIES (ELISA),2000/Rs,3-5 cc Clotted Blood or Serum,24 hrs
+406,HLA-B*27,16000/Rs,3 cc Clotted Blood/Serum,72 hrs
+407,Homocysteine,1500/Rs,Clot or serum 2 - 3 ml,24 hrs
+408,Homocystine (In Urine),1500/Rs,Urine 10 - 20ml,96 hrs
+409,Homocystine Level,1450/Rs,sample,48 hrs
+410,Hydrocele Fluid Analysis,1350/Rs,2cc EDTA Blood,96 hrs
+411,I.N.R,300/Rs,Contact Lab for bottle,2 hrs
+
+
+
+412,ICT-TB,500/Rs,2-3CC-EDTA Blood,24 hrs
+413,IgM,2000/Rs,Blood,96 hrs
+414,Immunoglobin A (IgA),1500/Rs,Clot or Serum 2 - 3 ml,96 hrs
+415,Immunoglobin G (IgG),1500/Rs,Clot or Serum 2 - 3 ml,96 hrs
+416,Immunoglobin M (IgM),1500/Rs,Clot or Serum 2 - 3 ml,96 hrs
+417,Inorganic Phosphorus,400/Rs,Clot or Serum 2 - 3 ml,3 hrs
+418,Insulin 1 1/2 Hrs(After 75 Grams),2000/Rs,3 - 5 CC Clotted Blood,36 hrs
+419,Insulin 1 Hrs(After 75 Grams),2000/Rs,3 - 5 CC Clotted Blood,36 hrs
+420,Insulin 1/2 Hrs(After 75 Grams),2000/Rs,3 - 5 CC Clotted Blood,36 hrs
+421,Insulin 2 1/2 Hrs(After 75 Grams),2000/Rs,3 - 5 CC Clotted Blood,36 hrs
+422,Insulin 2 Hrs(After 75 Grams),2000/Rs,3 - 5 CC Clotted Blood,36 hrs
+423,Insulin 3 Hrs(After 75 Grams),2000/Rs,sample,48 hrs
+424,Insulin 4 Hrs(After 75 Grams),2000/Rs,3 - 5 CC Clotted Blood,36 hrs
+425,Insulin 5 Hrs(After 75 Grams),2000/Rs,3 - 5 CC Clotted Blood,36 hrs
+426,Insulin level(Serum),2200/Rs,3-5 ml clotted blood/serum,36 hrs
+427,Insulin(Fasting),2000/Rs,3 - 5 CC Clotted Blood,36 hrs
+428,Intact Parathyroid Hormone (iPTH),2500/Rs,sample,72 hrs
+429,Interleukin 6 (IL6),1850/Rs,3-5 cc Clotted Blood or Serum,72 hrs
+430,Iron Level,1500/Rs,sample,48 hrs
+431,IRON STUDIES,4500/Rs,5cc CLOTTED,48 hrs
+432,Kappa Lambda light chain (Bound & free),9000/Rs,3-5 ml clotted blood/serum,96 hrs
+433,Ketones (Serum,200/Rs,3-4 cc cltted blood/ serum,5 hrs
+434,Ketones(Urine),200/Rs,SPOT URINE,24 hrs
+435,L.T Body,300/Rs,,5 hrs
+436,Lactate Level,2300/Rs,3-5 cc sodium fluride,48 hrs
+437,LDH(CSF),600/Rs,sample,2 hrs
+438,LDH(Fluid),600/Rs,sample,2 hrs
+439,LDL,500/Rs,3 - 5 CC Clotted Blood,48 hrs
+440,Lipase (Fluid),1500/Rs,sample,2 hrs
+441,Lipase Serum,1500/Rs,3 CC-Clotted Blood/Serum,2 hrs
+442,Lipid Profile,1000/Rs,3cc Clotted Blood/Serum,4 hrs
+443,Lipoprotein(A),1200/Rs,3 - 5 CC Clotted Blood,72 hrs
+444,Lithium (Serum),1500/Rs,3 - 5 CC Clotted Blood,24 hrs
+445,Liver Function Tests ( LFTS ),900/Rs,3 CC-Clotted Blood/Serum,4 hrs
+446,Lupus Anticoagulant,4700/Rs,Tri Sodium Citrate Tube (PT Vial),120 hrs
+447,Lymphocytes Count,300/Rs,3 CC EDTA BLOOD (CBC VIAL),2 hrs
+448,Magnesium Fluid,500/Rs,sample,48 hrs
+449,Malaria Parasite (MP),500/Rs,5 cc Clotted Blood/Serum,10 hrs
+450,Malaria parasites(MP),600/Rs,03CC SAMPAL COL,hrs
+451,MCH,300/Rs,3 CC EDTA BLOOD (CBC VIAL),2 hrs
+452,MCHC,300/Rs,3 CC EDTA BLOOD (CBC VIAL),2 hrs
+453,MCV,300/Rs,3 CC EDTA BLOOD (CBC VIAL),2 hrs
+454,Microalbuminuria (24 Hrs Urine),500/Rs,sample,6 hrs
+455,Microalbuminuria (Spot Urine),1200/Rs,Early morning urine Specimen/Spot urine,24 hrs
+456,Milk Analysis (LEFT),500/Rs,MILK,24 hrs
+457,Milk Analysis (RIGHT),300/Rs,MILK,24 hrs
+458,Milk For AFB C/S (First Report),3000/Rs,sample,48 hrs
+459,Milk For C/S e Gram Stain,1350/Rs,sample,48 hrs
+460,Milk For Cytology,1350/Rs,sample,48 hrs
+461,Milk For Fungus,1350/Rs,sample,48 hrs
+462,Milk For Fungus Stain/Fungal SMear,600/Rs,sample,48 hrs
+463,Milk For Gram Stain,350/Rs,sample,48 hrs
+
+
+
+464,Monocytes Count,300/Rs,sample,48 hrs
+465,MPV,300/Rs,sample,48 hrs
+466,Mycobacterium tuberculosis - via GeneXpert MTB-RIF Assay,4000/Rs,Any specimen,96 hrs
+467,Neutrophils Count,300/Rs,sample,48 hrs
+468,NT-Pro BNP,3000/Rs,3-5 ml in lithium vial,72 hrs
+469,Oestrogen Level,2500/Rs,5 cc Clotted Blood/Serum,hrs
+470,p-ANCA (Anti MPO),5700/Rs,3-5 cc Clotted Blood or Serum,96 hrs
+471,P.S.A(Prostate Specific Antigen),2000/Rs,3 CC-Clotted Blood/Serum,2 hrs
+472,P.T with I.N.R,700/Rs,3 CC-sodium citrate Blood,2 hrs
+473,PAP smear,2000/Rs,Prepared slides,72 hrs
+474,PATIETAL CELL (ANTIBODY),1500/Rs,,hrs
+475,PCR - HBV DNA (Qualitative),3500/Rs,5-6ml clotted blood,96 hrs
+476,PCR - HCV RNA (Qualitative),3500/Rs,5-6 cc Clotted Blood,96 hrs
+477,PCR - HCV RNA (Quantitative),4000/Rs,5-6 cc Clotted Blood,96 hrs
+478,Pericardial Fluid Analysis,1350/Rs,Pericardial fluid,48 hrs
+479,Peripheral Blood Film,350/Rs,3-5 cc in EDTA Vial,6 hrs
+480,Peripheral Film,1000/Rs,3 CC EDTA BLOOD (CBC VIAL),6 hrs
+481,pH(CSF),200/Rs,CSF,3 hrs
+482,pH(Fluid),200/Rs,Any fluid,2 hrs
+483,pH(Urine),200/Rs,Urine Specimen/Spot urine,0 hrs
+484,Phosphate(24 Hrs Urine),450/Rs,sample,48 hrs
+485,Phosphate(Serum),450/Rs,3 - 5 CC Clotted Blood,2 hrs
+486,Phosphate(Spot Urine),450/Rs,sample,48 hrs
+487,PIVKA -II,3000/Rs,5 cc clotted blood/serum,24 hrs
+488,Platelet Count,200/Rs,2-3CC-EDTA Blood,2 hrs
+489,Potasium Serum,500/Rs,3 CC-Clotted Blood/Serum,2 hrs
+490,Potassium K+ (24 Hrs Urine),350/Rs,sample,48 hrs
+491,Potassium K+ (Fluid),350/Rs,sample,48 hrs
+492,Potassium K+ (Urine),350/Rs,sample,48 hrs
+493,Pregnancy Test in Urine,200/Rs,Urine 3ml,2 hrs
+494,Prolactin,1500/Rs,3 CC-Clotted Blood/Serum,78 hrs
+495,Protein C,2000/Rs,Sodium Citrate Tube(PT vail),96 hrs
+496,Protein S,2000/Rs,Sodium Citrate Tube(PT vail),96 hrs
+497,Protein Total,400/Rs,2-3 cc Clotted Blood or serum,2 hrs
+498,Protein(24 Hrs Urine),450/Rs,sample,48 hrs
+499,Protein(CSF),450/Rs,CSF,48 hrs
+500,PSA,2000/Rs,3 CC,2 hrs
+501,PT&INR,500/Rs,3 CC-sodium citrate Blood,3 hrs
+502,PT/APTT/INR,1000/Rs,3 CC-sodium citrate Blood,6 hrs
+503,Pus For AFB,1200/Rs,Pus/Abscess fluid,24 hrs
+504,R.A Factor Quantitative),1500/Rs,Clot or Serum 2 - 3 ml,3 hrs
+505,RA Factor (QLT),1000/Rs,3cc clotted blood/serum,2 hrs
+506,RA Factor (QNT),1200/Rs,3-5 cc Clotted Blood or Serum,10 hrs
+507,RA FACTOR BY ELISA TEST,1200/Rs,3cc clotted blood/serum,-2 hrs
+508,RBC,300/Rs,3 CC EDTA BLOOD (CBC VIAL),2 hrs
+509,RDW-CV,300/Rs,3 CC EDTA BLOOD (CBC VIAL),2 hrs
+510,Red Cell Count,150/Rs,EDTA 3CC Blood,1 hrs
+511,Red Cell Folic Acid (Folate Level),2200/Rs,3 CC WHOLE BLOOD/EDTA,48 hrs
+512,Red Cell Indices,200/Rs,2-3 CC EDTA Blood,24 hrs
+513,Reducing Substances (Urine),200/Rs,Urine,3 hrs
+514,Renal Function Tests (RFTs),600/Rs,3 CC-Clotted Blood/Serum,2 hrs
+515,Retics Count,300/Rs,sample,24 hrs
+
+
+
+516,Rh Antibodies Titre,100/Rs,24 Hrs,12 hrs
+517,Rh. Antibody Test (Qualitative),700/Rs,Clot or Serum 2 - 3 ml,24 hrs
+518,Rh. Antibody Test (Quantitative),1000/Rs,Clot or Serum 2 - 3 ml,24 hrs
+519,Rubella (IgG Antibody),2000/Rs,Clot or Serum 2 - 3 ml,48 hrs
+520,Rubella (IgM Antibody),2000/Rs,Clot or Serum 2 - 3 ml,48 hrs
+521,SEMEN ANALYSIS,600/Rs,semen,3 hrs
+522,Semen IUI,2000/Rs,Semen,3 hrs
+523,Serum Aldolase,1500/Rs,3-5 cc Clotted Blood or Serum,96 hrs
+524,Serum Amylase,800/Rs,3 CC-Clotted Blood/Serum,2 hrs
+525,Serum Anti HBs,2500/Rs,3 cc Clotted Blood/Serum,48 hrs
+526,Serum Anti-HBc (Total),3200/Rs,sample,48 hrs
+527,Serum Anti-HBc IgM,3000/Rs,3-5 cc Clotted Blood or Serum,48 hrs
+528,SERUM BILE ACID,2700/Rs,3 cc Clotted Blood/Serum,24 hrs
+529,Serum Brucella IgG,1500/Rs,sample,24 hrs
+530,Serum Brucella IgM,1500/Rs,sample,24 hrs
+531,Serum Brucella IgM & IgG,3000/Rs,3 cc Clotted Blood/Serum,48 hrs
+532,Serum Carbamazepine,1350/Rs,3-5 cc Clotted Blood or Serum,48 hrs
+533,Serum Copper,2200/Rs,3-5 cc Clotted Blood or Serum,24 hrs
+534,Serum Creatinine,300/Rs,3 CC-Clotted Blood/Serum,2 hrs
+535,Serum Echinococcus IgG,3500/Rs,3-5 cc Clotted Blood or Serum,48 hrs
+536,Serum Electrolyte,1000/Rs,3 CC-Clotted Blood/Serum,2 hrs
+537,SERUM FERRITIN,1800/Rs,2-3 cc Clotted Blood,4 hrs
+538,Serum Folic Acid (Folate Level),2000/Rs,3 CC-Clotted Blood/Serum,24 hrs
+539,SERUM GASTRIN,2500/Rs,3 cc Clotted Blood/Serum,hrs
+540,Serum Hepatoglobin,2000/Rs,5 cc clotted blood/serum,48 hrs
+541,Serum LDH,600/Rs,3 CC-Clotted Blood/Serum,2 hrs
+542,Serum Magnesium,500/Rs,3 CC-Clotted Blood/Serum,48 hrs
+543,Serum Phosphorus,600/Rs,3 CC-Clotted Blood/Serum,4 hrs
+544,Serum Procalcitonin,5800/Rs,3-5 ml clotted blood/serum,48 hrs
+545,Serum Progesterone,2500/Rs,5 cc clotted blood/serum,24 hrs
+546,SERUM PROTEIN ( ELECTROPHORESIS),2500/Rs,3 cc Clotted Blood/Serum,hrs
+547,SERUM RPR/VDRL,2000/Rs,3 cc clotted blood/serum,3 hrs
+548,Serum Toxoplasma IgG,2000/Rs,Clot or Serum 2 - 3 ml,48 hrs
+549,Serum Toxoplasma IgM,2000/Rs,Clot or Serum 2 - 3 ml,48 hrs
+550,Serum Uric Acid,300/Rs,3 CC-Clotted Blood/Serum,3 hrs
+551,Servical Swab For Gram Stain,350/Rs,sample,24 hrs
+552,Sickle Cell Test,1000/Rs,Fresh EDTA blood 2ml,6 hrs
+553,Skin scrapping For Fungus culture,2000/Rs,Skin scrapping,72 hrs
+554,Slides & Blocks for review with Immunohistochemistry,6000/Rs,Slides and blocks,240 hrs
+555,Sodium Serum,600/Rs,3 CC-Clotted Blood/Serum,1 hrs
+556,Spot proteinuria,700/Rs,20-30 ml urine,24 hrs
+557,Spot Urine For Protein & Creatinine Ratio,2000/Rs,sample,48 hrs
+558,SPUTUM C/S,2500/Rs,,5 hrs
+559,Sputum For AFB,600/Rs,Sputum,24 hrs
+560,Sputum for Fungus Stain,1500/Rs,SPUTUM,48 hrs
+561,Sputum R/E,1000/Rs,Sputum,48 hrs
+562,Stone Analysis,3000/Rs,Stones,240 hrs
+563,Stool Complete Examination,800/Rs,stool,24 hrs
+564,Stool Culture,1500/Rs,Stool,48 hrs
+565,Stool for Calprotectin,4500/Rs,Stool,72 hrs
+566,Stool for Occult Blood,500/Rs,Stool,24 hrs
+567,Stool For Ova,Cysts and Parasites,250/Rs,Stool specimen,24 hrs
+
+
+
+568,Stool for Reducing sub-pH,500/Rs,Stool,24 hrs
+569,T-SPOT TB,11000/Rs,3-5 cc sodium Heparin,120 hrs
+570,T3 - Total,1000/Rs,Clot or Serum 2 - 3 ml,4 hrs
+571,T4 - Total,1000/Rs,Clot or Serum 2 - 3 ml,4 hrs
+572,TACROLIMUS LEVEL,5000/Rs,3 cc clotted blood/serum,48 hrs
+573,TB Gold,13000/Rs,5 cc Clotted Blood/Serum,72 hrs
+574,TB Screening With Mantoux Test,500/Rs,,2 hrs
+575,Testosterone,3000/Rs,Clot or Serum 2 - 3 ml,48 hrs
+576,Thyroid Peroxidase Antibodies (ANTI-TPO),2500/Rs,3-5 ml clotted blood/serum,72 hrs
+577,Thyroid Profile,3500/Rs,5-6 cc Clotted Blood,5 hrs
+578,TIBC (Total Iron Binding Capacity),800/Rs,sample,48 hrs
+579,TLC (WBC),200/Rs,2-3CC-EDTA Blood,1 hrs
+580,TORCH PROFILE,7500/Rs,3-5 cc Clotted Blood or Serum,24 hrs
+581,Total Lipids,1500/Rs,sample,48 hrs
+582,TPHA,1500/Rs,3cc Clotted Blood/Serum,3 hrs
+583,Transferrin,2200/Rs,3 cc Clotted Blood/Serum,48 hrs
+584,TROP I (QLT),1200/Rs,,hrs
+585,TROP-T,1500/Rs,3cc EDTA BLOOD,hrs
+586,Troponin-I (QNT) (Cardiac Marker),1200/Rs,3 CC-Clotted Blood/Serum,3 hrs
+587,TSH,1500/Rs,Clot or Serum 2 - 3 ml,2 hrs
+588,Tuberculin Test,600/Rs,0.1 ml Intradermal injection,72 hrs
+589,UREA BREATH TEST,5000/Rs,,24 hrs
+590,Urea Clearance,1000/Rs,24hr urine & 2ml serum,24 hrs
+591,Urethral Smear For gram Staining,800/Rs,Urethral Smear,24 hrs
+592,Urinary Calcium (Spot),500/Rs,Urine 20 - 25ml,24 hrs
+593,Urinary Chloride (Spot),500/Rs,Urine 20 - 25ml,24 hrs
+594,Urinary Cortisol (Spot),2000/Rs,Urine 20 - 25ml,24 hrs
+595,Urinary Creatinine (Spot),500/Rs,Urine 20 - 25ml,24 hrs
+596,Urinary LDH (Spot),/Rs,,24 hrs
+597,Urinary LDH (Spot),500/Rs,Urine 20 - 25ml,24 hrs
+598,Urinary pH (Spot),100/Rs,Urine 20 - 25ml,24 hrs
+599,Urinary Phosphorous (Spot),500/Rs,Urine 20 - 25ml,24 hrs
+600,Urinary Potassium (Spot),500/Rs,Urine 20 - 25ml,24 hrs
+601,Urinary Protein (Spot),500/Rs,Urine 20 - 25ml,24 hrs
+602,Urinary Protein/Creatinine Ratio,800/Rs,Urine 20 - 25ml,8 hrs
+603,Urinary Sodium (Spot),600/Rs,Urine 20 - 25ml,24 hrs
+604,Urinary Urea (Spot),600/Rs,Urine 20 - 25ml,24 hrs
+605,Urinary Uric acid,600,/Rs,SPOT URINE/ after night,6 hrs
+606,Urine Complete Examination,200/Rs,Urine Specimen/Spot urine,2 hrs
+607,URINE CULTURE & SENSTIVITY,2500/Rs,URINE,96 hrs
+608,URINE CYTOLOGY TEST,2500/Rs,URINE,48 hrs
+609,URINE FOR ALBUMIN,100/Rs,Spot urine sample,1 hrs
+610,Urine For Bile Salt & Bile Pigment,500/Rs,,48 hrs
+611,Urine for F.D.Ps,2000/Rs,Contact lab for tube,24 hrs
+612,Urine for Haemoglobinuria,200/Rs,Urine 20 - 25ml,4 hrs
+613,urine for Homocystine,/Rs,,45 hrs
+614,urine for Homocystine,680/Rs,Urine 20 - 25ml,24 hrs
+615,Urine For Ketones,300/Rs,Urine 20 - 25ml,2 hrs
+616,Urine for pH,150/Rs,Urine 20 - 25ml,3 hrs
+617,Urine for Protein,100/Rs,Urine 20 - 25ml,3 hrs
+618,Urine for Sp. Gravity,100/Rs,Urine 20 - 25ml,3 hrs
+619,Urine for Sp. Gravity,100/Rs,Urine 20 - 25ml,3 hrs
+620,Urine for Sugar,100/Rs,Urine 20 - 25ml,2 hrs
+
+
+
+621,Urine For Z.N. Stain,500/Rs,sample,3 hrs
+622,Urine test for Cocaine,2000/Rs,urine,24 hrs
+623,Urine test for Heroin/Opiates,2000/Rs,urine,24 hrs
+624,Urine Test For Multi Drug Screening,2500/Rs,sample,48 hrs
+625,Urine test for THC/Cannabinol,2000/Rs,urine,24 hrs
+626,Valporic Acid (Epival, Epilium),1000/Rs,sample,48 hrs
+627,varicella zoster virus IgG (Chicken pox)),2800/Rs,2-3 cc Clotted Blood,72 hrs
+628,VDRL(Syphilis),600/Rs,3cc Clotted Blood/Serum,6 hrs
+629,Viral Markers,600/Rs,3-5 cc Clotted Blood or Serum,2 hrs
+630,Vitamin A,2500/Rs,3 CC-Clotted Blood/Serum,2 hrs
+631,Vitamin B-12 (Serum),2000/Rs,3-5 cc Clotted Blood or Serum,72 hrs
+632,VLDL,400/Rs,3-5 cc Clotted Blood or Serum,0 hrs
+633,WBC Count,200/Rs,sample,1 hrs
+634,Widal test,500/Rs,3-5 cc Clotted Blood or Serum,4 hrs
+635,ZINC,1500/Rs,3 cc clotted blood/serum,hrs
+
+
