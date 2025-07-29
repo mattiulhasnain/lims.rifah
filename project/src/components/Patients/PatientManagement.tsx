@@ -259,7 +259,12 @@ const PatientManagement: React.FC = () => {
     } else {
       updatedTests.push(newTestResult);
     }
-    updateReport(report.id, { tests: updatedTests });
+    // Mark report as completed automatically once all ordered tests have results
+    const allResultsEntered = updatedTests.every(t => t.result && t.result.toString().trim() !== '');
+    updateReport(report.id, {
+      tests: updatedTests,
+      ...(allResultsEntered ? { status: 'completed', userId: user?.id || 'system' } : {})
+    });
     setShowAddResults({ open: false, patient: null });
     setSelectedTestId('');
     setResultValues({});

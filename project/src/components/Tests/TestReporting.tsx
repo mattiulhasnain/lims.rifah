@@ -129,7 +129,12 @@ const TestReporting: React.FC = () => {
       };
     }
     
-    updateReport(report.id, { tests: updatedTests });
+    // Automatically mark report as completed when every test has non-empty result
+    const allResultsEntered = updatedTests.every(t => t.result && t.result.toString().trim() !== '');
+    updateReport(report.id, {
+      tests: updatedTests,
+      ...(allResultsEntered ? { status: 'completed', userId: user?.id || 'system' } : {})
+    });
     
     // Add notification
     addNotification({
