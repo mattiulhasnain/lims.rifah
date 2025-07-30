@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useData } from '../../context/DataContext';
 import { useAuth } from '../../context/AuthContext';
-import { User, Report } from '../../types';
+import { Report } from '../../types';
 import { Eye, CheckCircle } from 'lucide-react';
 import { createReportPDF } from '../../utils/pdfGenerator';
 
 const ReportVerification: React.FC = () => {
-  const { reports, patients, doctors, invoices, updateReport } = useData();
+  const { reports, patients, doctors, updateReport } = useData();
   const { user, hasPermission } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'completed' | 'verified'>('all');
@@ -91,7 +91,7 @@ const ReportVerification: React.FC = () => {
           />
           <select
             value={statusFilter}
-            onChange={e => setStatusFilter(e.target.value as any)}
+            onChange={e => setStatusFilter(e.target.value as 'all' | 'completed' | 'verified')}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-inter"
           >
             <option value="all">All</option>

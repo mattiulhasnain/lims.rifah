@@ -5,7 +5,7 @@ import {
   Plus, Search, Filter, Edit, Trash2, 
   CheckCircle, XCircle, Loader2
 } from 'lucide-react';
-import { Patient } from '../../types';
+import { Patient, TestWithParameters, TestParameter } from '../../types';
 
 // Toast component for feedback
 const Toast: React.FC<{ type: 'success' | 'error'; message: string; onClose: () => void }> = ({ type, message, onClose }) => (
@@ -175,14 +175,14 @@ const PatientManagement: React.FC = () => {
     // Find the patient's report (assume one report per patient for simplicity)
     const report = reports.find(r => r.patientId === patient.id);
     if (!report) return;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let newTestResult: any;
+    let newTestResult: { [key: string]: string | number | boolean };
     const abnormalParams: string[] = [];
     const criticalParams: string[] = [];
     let isCritical = false;
-    if (test && Array.isArray((test as any).parameters) && (test as any).parameters.length > 0) {
+    const testWithParams = test as TestWithParameters;
+    if (testWithParams && Array.isArray(testWithParams.parameters) && testWithParams.parameters.length > 0) {
       // Structured test
-      const params = (test as any).parameters;
+      const params = testWithParams.parameters;
       // Validation: all fields required
       for (const param of params) {
         if (!resultValues[param.name] || resultValues[param.name].trim() === '') {
@@ -597,9 +597,9 @@ const PatientManagement: React.FC = () => {
             {validationError && <div className="text-red-600 mb-2">{validationError}</div>}
             {selectedTestId && (() => {
               const test = tests.find(t => t.id === selectedTestId);
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              if (test && Array.isArray((test as any).parameters) && (test as any).parameters.length > 0) {
-                const params = (test as any).parameters;
+                              const testWithParams2 = test as TestWithParameters;
+                if (testWithParams2 && Array.isArray(testWithParams2.parameters) && testWithParams2.parameters.length > 0) {
+                  const params = testWithParams2.parameters;
                  
                 const abnormalMap: { [key: string]: boolean } = {};
                  
@@ -629,7 +629,7 @@ const PatientManagement: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {params.map((param: any, idx: number) => (
+                        {params.map((param: TestParameter, idx: number) => (
                           <tr key={idx}>
                             <td className="px-2 py-1">{param.name}</td>
                             <td className="px-2 py-1">

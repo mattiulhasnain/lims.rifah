@@ -4,23 +4,7 @@ import {
   Plus, AlertTriangle, CheckCircle,
   Settings, Target
 } from 'lucide-react';
-
-interface QCRecord {
-  id: string;
-  testId: string;
-  testName: string;
-  controlLevel: 'Level 1' | 'Level 2' | 'Level 3';
-  expectedValue: number;
-  actualValue: number;
-  unit: string;
-  tolerance: number;
-  isWithinRange: boolean;
-  performedBy: string;
-  performedAt: Date;
-  instrumentId?: string;
-  batchNumber?: string;
-  notes?: string;
-}
+import { QCRecord } from '../../types';
 
 interface CalibrationRecord {
   id: string;
@@ -57,7 +41,7 @@ const QualityControl: React.FC = () => {
   const [qcFormData, setQcFormData] = useState({
     testId: '',
     testName: '',
-    controlLevel: 'Level 1' as const,
+    controlLevel: 'low' as const,
     expectedValue: '',
     actualValue: '',
     unit: '',
@@ -129,7 +113,7 @@ const QualityControl: React.FC = () => {
     setQcFormData({
       testId: '',
       testName: '',
-      controlLevel: 'Level 1',
+      controlLevel: 'low',
       expectedValue: '',
       actualValue: '',
       unit: '',
@@ -390,12 +374,12 @@ const QualityControl: React.FC = () => {
                   <select
                     required
                     value={qcFormData.controlLevel}
-                    onChange={(e) => setQcFormData({...qcFormData, controlLevel: e.target.value as any})}
+                    onChange={(e) => setQcFormData({...qcFormData, controlLevel: e.target.value as 'low' | 'normal' | 'high'})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="Level 1">Level 1</option>
-                    <option value="Level 2">Level 2</option>
-                    <option value="Level 3">Level 3</option>
+                    <option value="low">Low</option>
+                    <option value="normal">Normal</option>
+                    <option value="high">High</option>
                   </select>
                 </div>
                 <div>

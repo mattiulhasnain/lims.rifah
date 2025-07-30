@@ -258,16 +258,13 @@ export interface QCRecord {
   id: string;
   testId: string;
   testName: string;
-  controlLevel: 'Level 1' | 'Level 2' | 'Level 3';
+  controlLevel: 'low' | 'normal' | 'high';
   expectedValue: number;
   actualValue: number;
-  unit: string;
-  tolerance: number;
-  isWithinRange: boolean;
+  deviation: number;
+  status: 'pass' | 'fail' | 'warning';
   performedBy: string;
   performedAt: Date;
-  instrumentId?: string;
-  batchNumber?: string;
   notes?: string;
 }
 
@@ -336,4 +333,45 @@ export interface TestRate {
   price: number;
   category: string;
   sampleType: string; // Added for rate list sample type selection
+}
+
+export interface TestParameter {
+  name: string;
+  normalRange?: string;
+  unit?: string;
+  type: 'numeric' | 'text' | 'boolean';
+  required: boolean;
+}
+
+export interface TestWithParameters extends Test {
+  parameters?: TestParameter[];
+}
+
+export interface PDFReportData {
+  patient: Patient;
+  doctor?: Doctor;
+  invoice: Invoice;
+  tests: Test[];
+  results: { [testId: string]: string | number | boolean };
+  reportDate: Date;
+  labInfo: {
+    name: string;
+    address: string;
+    phone: string;
+    email: string;
+  };
+}
+
+export interface PDFInvoiceData {
+  invoice: Invoice;
+  patient: Patient;
+  doctor?: Doctor;
+  tests: InvoiceTest[];
+  labInfo: {
+    name: string;
+    address: string;
+    phone: string;
+    email: string;
+    logo?: string;
+  };
 }

@@ -120,7 +120,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     // Import from consultants_camelot_all.csv if present
     if (consultantsCsv) {
       const results = Papa.parse(consultantsCsv, { header: true, skipEmptyLines: true });
-      const csvDoctors = (results.data as any[]).map((row, idx) => ({
+      const csvDoctors = (results.data as Record<string, string>[]).map((row, idx) => ({
         id: `D${(idx + 1).toString().padStart(4, '0')}`,
         name: row['Consultant Name']?.trim() || '',
         contact: row['Contact No']?.trim() || '',

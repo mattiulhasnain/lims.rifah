@@ -63,7 +63,9 @@ export const generatePDF = async (elementId: string, options: PDFOptions) => {
   pdf.save(options.filename);
 };
 
-export const createReportPDF = async (reportData: any) => {
+import { PDFReportData, PDFInvoiceData } from '../types';
+
+export const createReportPDF = async (reportData: PDFReportData) => {
   // Create a temporary div for PDF generation
   const tempDiv = document.createElement('div');
   tempDiv.id = 'pdf-report-temp';
@@ -107,7 +109,7 @@ export const createReportPDF = async (reportData: any) => {
           </tr>
         </thead>
         <tbody>
-          ${reportData.tests.map((test: any, index: number) => `
+          ${reportData.tests.map((test, index: number) => `
             <tr style="background-color: ${index % 2 === 0 ? '#f9fafb' : 'white'};">
               <td style="border: 1px solid #d1d5db; padding: 10px; font-weight: 500;">${test.testName}</td>
               <td style="border: 1px solid #d1d5db; padding: 10px; text-align: center; ${test.isAbnormal ? 'color: #dc2626; font-weight: bold;' : 'font-weight: 500;'}">${test.result}</td>
@@ -179,7 +181,7 @@ export const createReportPDF = async (reportData: any) => {
   }
 };
 
-export const createInvoicePDF = async (invoiceData: any, qrCodeDataUrl: string) => {
+export const createInvoicePDF = async (invoiceData: PDFInvoiceData, qrCodeDataUrl: string) => {
   // Create a temporary div for PDF generation
   const tempDiv = document.createElement('div');
   tempDiv.id = 'pdf-invoice-temp';
@@ -282,7 +284,7 @@ export const createInvoicePDF = async (invoiceData: any, qrCodeDataUrl: string) 
               </tr>
             </thead>
             <tbody>
-              ${Array.isArray(invoiceData.tests) && invoiceData.tests.length > 0 ? invoiceData.tests.map((test: any, idx: number) => `
+              ${Array.isArray(invoiceData.tests) && invoiceData.tests.length > 0 ? invoiceData.tests.map((test, idx: number) => `
                 <tr style="background-color: ${idx % 2 === 0 ? '#ffffff' : '#f9fafb'};">
                   <td style="padding: 10px 14px; border-bottom: 1px solid #f3f4f6; color: #1e293b; font-weight: 500;">${test.testName || test.name || '-'}</td>
                   <td style="padding: 10px 14px; border-bottom: 1px solid #f3f4f6; text-align: center; color: #6b7280;">${test.quantity || 1}</td>

@@ -71,7 +71,7 @@ const HelpSupport: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [showTicketForm, setShowTicketForm] = useState(false);
-  const [showTicketDetail, setShowTicketDetail] = useState<string | null>(null);
+  // const [showTicketDetail, setShowTicketDetail] = useState<string | null>(null);
   const [ticketForm, setTicketForm] = useState({
     title: '',
     description: '',
@@ -699,7 +699,7 @@ const HelpSupport: React.FC = () => {
                       </div>
                       <div className="flex space-x-2 mt-3">
                         <button 
-                          onClick={() => setShowTicketDetail(ticket.id)}
+                          onClick={() => {/* TODO: Implement ticket detail modal */}}
                           className="text-blue-600 hover:text-blue-700 text-sm font-medium"
                         >
                           View Details
