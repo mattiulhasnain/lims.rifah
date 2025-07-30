@@ -103,7 +103,7 @@ const LoginCreator: React.FC<LoginCreatorProps> = ({ onBack }) => {
       } else {
         setErrors({ general: 'Failed to create user. Username or email may already exist.' });
       }
-    } catch (error) {
+    } catch {
       setErrors({ general: 'An error occurred while creating the user.' });
     } finally {
       setIsLoading(false);

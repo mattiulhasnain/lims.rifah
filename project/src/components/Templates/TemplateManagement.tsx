@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { 
-  Plus, Search, Edit, Trash2, Copy, Lock, Unlock,
-  FileText, Eye, Download, Upload, Save
+  Plus, Search, Edit, Copy, Lock, Unlock,
+  FileText, Save
 } from 'lucide-react';
 
 interface ReportTemplate {

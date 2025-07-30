@@ -164,7 +164,7 @@ const Settings: React.FC = () => {
     };
 
     loadSettings();
-  }, [theme, setTheme, addNotification]); // Removed context update functions from dependencies
+  }, [theme, setTheme, addNotification, updateDatabaseSettings, updateNotificationSettings, updateSecuritySettings]);
 
   // Sync settings state when theme changes from outside settings
   useEffect(() => {
@@ -199,7 +199,7 @@ const Settings: React.FC = () => {
     console.log('Security context available:', !!updateSecuritySettings);
     console.log('Notification context available:', !!updateNotificationSettings);
     console.log('Database context available:', !!updateDatabaseSettings);
-  }, []); // Only run once on mount
+  }, [updateSecuritySettings, updateNotificationSettings, updateDatabaseSettings]); // Dependencies for console logs
 
   // Only show for admin/dev
   const showAdminTools = user && (user.role === 'admin' || user.role === 'dev');

@@ -5,8 +5,8 @@ import {
   LineChart, Line, PieChart, Pie, Cell, AreaChart, Area
 } from 'recharts';
 import { 
-  TrendingUp, Users, DollarSign, TestTube, Calendar,
-  Download, Filter, RefreshCw
+  TrendingUp, Users, DollarSign, TestTube,
+  Download
 } from 'lucide-react';
 
 const Analytics: React.FC = () => {

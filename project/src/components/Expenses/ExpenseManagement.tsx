@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useData } from '../../context/DataContext';
 import { useAuth } from '../../context/AuthContext';
 import { 
-  Plus, Search, Filter, Edit, Trash2, Calendar,
+  Plus, Search, Edit, Trash2, Calendar,
   DollarSign, Tag, CreditCard, FileText, TrendingUp
 } from 'lucide-react';
 import { Expense } from '../../types';

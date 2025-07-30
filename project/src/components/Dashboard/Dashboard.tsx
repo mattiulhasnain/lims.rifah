@@ -20,7 +20,7 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     refreshDashboard();
-  }, [patients, doctors, tests, invoices, reports, stock]);
+  }, [refreshDashboard, patients, doctors, tests, invoices, reports, stock]);
 
   // Workflow guidance functions
   const showWorkflowSuccess = (message: string, steps: string[]) => {

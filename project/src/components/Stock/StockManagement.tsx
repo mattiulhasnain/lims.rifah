@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { useData } from '../../context/DataContext';
 import { useAuth } from '../../context/AuthContext';
 import { 
-  Plus, Search, Filter, Edit, Trash2, AlertTriangle,
+  Plus, Search, Filter, Edit, AlertTriangle,
   Package, TrendingDown, Calendar, DollarSign,
   ArrowUp, ArrowDown, Building
 } from 'lucide-react';
-import { StockItem, StockTransaction } from '../../types';
+import { StockItem } from '../../types';
 
 const StockManagement: React.FC = () => {
   const { stock, addStockItem, updateStockItem } = useData();

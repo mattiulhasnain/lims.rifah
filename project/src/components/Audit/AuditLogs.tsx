@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useData } from '../../context/DataContext';
 import { useAuth } from '../../context/AuthContext';
 import { 
-  Search, Download, Calendar, User,
+  Search, Download, User,
   Activity, Shield, Eye, AlertTriangle, CheckCircle,
-  Clock, Zap, Target, TrendingUp, X
+  Zap, Target, X
 } from 'lucide-react';
 import { AuditLog, Notification } from '../../types';
 

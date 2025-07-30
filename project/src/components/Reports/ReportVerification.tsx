@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useData } from '../../context/DataContext';
 import { useAuth } from '../../context/AuthContext';
 import { User, Report } from '../../types';
-import { Eye, CheckCircle, Search, User as UserIcon, FileText, Calendar } from 'lucide-react';
+import { Eye, CheckCircle } from 'lucide-react';
 import { createReportPDF } from '../../utils/pdfGenerator';
 
 const ReportVerification: React.FC = () => {
@@ -12,7 +12,7 @@ const ReportVerification: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'completed' | 'verified'>('all');
   const [viewingReport, setViewingReport] = useState<Report | null>(null);
   const [verifying, setVerifying] = useState<string | null>(null);
-  const [declineReason, setDeclineReason] = useState('');
+
 
   // Filter reports for verification
   const filteredReports = reports.filter(report => {
@@ -205,7 +205,6 @@ const ReportVerification: React.FC = () => {
       {viewingReport && (() => {
         const patient = patients.find(p => p.id === viewingReport.patientId);
         const doctor = doctors.find(d => d.id === viewingReport.doctorId);
-        const invoice = invoices.find(inv => inv.id === viewingReport.invoiceId);
         return (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fade-in">
             <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl animate-slide-up">

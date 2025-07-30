@@ -8,22 +8,18 @@ import {
   Search, 
   ChevronDown, 
   ChevronUp,
-  ExternalLink,
   Download,
   BookOpen,
   HelpCircle,
   Clock,
   MapPin,
-  User,
-  Send,
   CheckCircle,
   AlertCircle,
   Info,
   Play,
   X,
   Plus,
-  Edit,
-  Trash2
+  Edit
 } from 'lucide-react';
 
 interface FAQItem {
@@ -84,7 +80,7 @@ const HelpSupport: React.FC = () => {
   });
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [guides, setGuides] = useState<UserGuide[]>([]);
-  const [selectedGuide, setSelectedGuide] = useState<string | null>(null);
+
   const [showVideoModal, setShowVideoModal] = useState(false);
   const [currentVideo, setCurrentVideo] = useState('');
 

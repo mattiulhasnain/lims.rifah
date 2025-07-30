@@ -110,14 +110,7 @@ const RateListManagement: React.FC = () => {
     deleteRateList(id);
   };
 
-  const updateTestRate = (testId: string, newPrice: number) => {
-    setFormData(prev => ({
-      ...prev,
-      rates: prev.rates.map(rate => 
-        rate.testId === testId ? { ...rate, price: newPrice } : rate
-      )
-    }));
-  };
+
 
   const addAllTests = () => {
     const newRates = tests.map(test => ({

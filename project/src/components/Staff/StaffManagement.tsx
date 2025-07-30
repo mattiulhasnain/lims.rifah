@@ -86,7 +86,6 @@ const StaffManagement: React.FC = () => {
 
   const handleEdit = (staff: User) => {
     setEditingStaff(staff);
-    const extra = staff as any;
     setFormData({
       username: staff.username || '',
       email: staff.email || '',

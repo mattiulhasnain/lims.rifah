@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { 
-  Plus, Search, Calendar, AlertTriangle, CheckCircle,
-  Settings, TrendingUp, FileText, Target
+  Plus, AlertTriangle, CheckCircle,
+  Settings, Target
 } from 'lucide-react';
 
 interface QCRecord {

@@ -3,7 +3,7 @@ import { useData } from '../../context/DataContext';
 import { useAuth } from '../../context/AuthContext';
 import { 
   Upload, Download, Trash2, Eye, Search, Folder,
-  File, Image, FileText, Plus, FolderPlus
+  File, Image, FileText, FolderPlus
 } from 'lucide-react';
 
 interface FileItem {

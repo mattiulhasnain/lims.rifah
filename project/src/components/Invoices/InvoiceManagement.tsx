@@ -6,8 +6,8 @@ import {
   Receipt, DollarSign, Calendar, User,
   Lock, Unlock, Printer
 } from 'lucide-react';
-import { Invoice, InvoiceTest, PaymentRecord } from '../../types';
-import { createInvoicePDF, createReportPDF, exportReportsToExcel } from '../../utils/pdfGenerator';
+import { Invoice, InvoiceTest } from '../../types';
+import { createInvoicePDF } from '../../utils/pdfGenerator';
 import * as QRCode from 'qrcode';
 
 const InvoiceManagement: React.FC = () => {
@@ -122,7 +122,7 @@ const InvoiceManagement: React.FC = () => {
     });
   };
 
-  const updateInvoiceTest = (index: number, field: keyof InvoiceTest, value: any) => {
+  const updateInvoiceTest = (index: number, field: keyof InvoiceTest, value: string | number) => {
     const updatedTests = [...formData.tests];
     updatedTests[index] = { ...updatedTests[index], [field]: value };
     
@@ -861,7 +861,7 @@ const InvoiceManagement: React.FC = () => {
                   const added = patients.find(p => p.name === patient.name && p.contact === patient.contact);
                   if (added) setFormData(f => ({ ...f, patientId: added.id }));
                 }, 100);
-              } catch (err) {
+              } catch {
                 setPatientFormError('Failed to add patient. Please try again.');
               } finally {
                 setPatientFormLoading(false);

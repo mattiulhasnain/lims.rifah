@@ -16,7 +16,7 @@ interface BackupRecord {
 }
 
 const BackupManagement: React.FC = () => {
-  const { user, hasPermission } = useAuth();
+  const { hasPermission } = useAuth();
   const [backups, setBackups] = useState<BackupRecord[]>([
     {
       id: '1',
