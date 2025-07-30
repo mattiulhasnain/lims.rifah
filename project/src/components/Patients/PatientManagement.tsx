@@ -177,8 +177,8 @@ const PatientManagement: React.FC = () => {
     if (!report) return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let newTestResult: any;
-    let abnormalParams: string[] = [];
-    let criticalParams: string[] = [];
+    const abnormalParams: string[] = [];
+    const criticalParams: string[] = [];
     let isCritical = false;
     if (test && Array.isArray((test as any).parameters) && (test as any).parameters.length > 0) {
       // Structured test
@@ -600,9 +600,9 @@ const PatientManagement: React.FC = () => {
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               if (test && Array.isArray((test as any).parameters) && (test as any).parameters.length > 0) {
                 const params = (test as any).parameters;
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                 
                 const abnormalMap: { [key: string]: boolean } = {};
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                 
                 const criticalMap: { [key: string]: boolean } = {};
                 for (const param of params) {
                   const value = parseFloat(resultValues[param.name]);
