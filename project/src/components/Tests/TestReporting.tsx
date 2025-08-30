@@ -1,706 +1,434 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useData } from '../../context/DataContext';
 import { useAuth } from '../../context/AuthContext';
-import { exportReportsToExcel } from '../../utils/pdfGenerator';
-import { Eye, Download, CheckCircle, AlertTriangle, Info, ArrowRight, Check, X, Save, FileText, Play } from 'lucide-react';
-import { Report, ReportTest } from '../../types';
-type ResultRow = ReportTest & { reportId: string; patientId: string; doctorId: string; createdAt: Date; status: string; abnormal: boolean; critical: boolean; report: Report; idx: number; };
+import { Report, ReportTestParameter, Test } from '../../types';
+import { Save, CheckCircle, AlertTriangle, Download } from 'lucide-react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 const TestReporting: React.FC = () => {
-  const { reports, patients, doctors, tests, updateReport, addNotification } = useData();
-  const { hasPermission } = useAuth();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filter, setFilter] = useState({ patient: '', doctor: '', test: '', abnormal: '', date: '' });
-  // 1. Add a state to toggle between 'All Results' and 'Pending Results'
-  const [showPendingOnly, setShowPendingOnly] = useState(true);
+  const { reports, updateReport, patients, doctors, tests } = useData();
+  const { user, hasPermission } = useAuth();
+  const selectedId = localStorage.getItem('lab_selected_report_id') || '';
+  const report = useMemo(() => reports.find(r => r.id === selectedId) || reports[0], [reports, selectedId]);
+  const [local, setLocal] = useState(report);
+  const [showDetailedView, setShowDetailedView] = useState(false);
 
-  // 2. Add a state for editing a result
-  const [editingResult, setEditingResult] = useState<ResultRow | null>(null);
-  const [editResultValue, setEditResultValue] = useState('');
-  const [editValidationError, setEditValidationError] = useState('');
-  const [editCriticalComment, setEditCriticalComment] = useState('');
-  const [editAcknowledgeCritical, setEditAcknowledgeCritical] = useState(false);
-  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
-  const [nextPendingTest, setNextPendingTest] = useState<ResultRow | null>(null);
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const [confirmationAction, setConfirmationAction] = useState<(() => void) | null>(null);
-  
-  // 3. Add workflow state management
-  const [workflowStep, setWorkflowStep] = useState<'entry' | 'draft' | 'completed' | 'reporting'>('entry');
-  const [showWorkflowGuide, setShowWorkflowGuide] = useState(true);
+  // Load parameter templates from test management when report changes
+  useEffect(() => {
+    if (report && tests.length > 0) {
+      console.log('TestReporting: Loading parameter templates for report:', report.id);
+      console.log('Available tests with templates:', tests.filter(t => t.parameterTemplates && t.parameterTemplates.length > 0));
+      
+      const updatedTests = report.tests.map(reportTest => {
+        const testTemplate = tests.find(t => t.id === reportTest.testId);
+        console.log(`TestReporting: Processing test ${reportTest.testName} (${reportTest.testId})`);
+        console.log(`TestReporting: Found template:`, testTemplate);
+        
+        if (testTemplate && testTemplate.parameterTemplates && testTemplate.parameterTemplates.length > 0) {
+          console.log(`TestReporting: Test has ${testTemplate.parameterTemplates.length} parameter templates`);
+          // If test has parameter templates but report test doesn't have parameters, load them
+          if (!reportTest.parameters || reportTest.parameters.length === 0) {
+            const parameters: ReportTestParameter[] = testTemplate.parameterTemplates.map(template => ({
+              name: template.name,
+              result: '',
+              normalRange: template.normalRange,
+              unit: template.unit || '',
+              isAbnormal: false
+            }));
+            
+            // Also populate the main test fields with the first parameter's template values
+            const firstParam = testTemplate.parameterTemplates[0];
+            console.log(`TestReporting: Populating main fields with first parameter:`, firstParam);
+            
+            return { 
+              ...reportTest, 
+              parameters,
+              normalRange: firstParam.normalRange,
+              unit: firstParam.unit || ''
+            };
+          }
+        }
+        return reportTest;
+      });
+      
+      if (JSON.stringify(updatedTests) !== JSON.stringify(report.tests)) {
+        console.log('TestReporting: Updating tests with template data');
+        setLocal({ ...report, tests: updatedTests });
+      }
+    }
+  }, [report, tests]);
 
-  // Flatten all test results from reports for easier filtering
-  const allResults: ResultRow[] = reports.flatMap((report) => 
-    (report.tests || []).map((test, testIdx) => ({
-      ...test,
-      reportId: report.id,
-      patientId: report.patientId,
-      doctorId: report.doctorId,
-      createdAt: report.createdAt,
-      status: report.status,
-      abnormal: test.isAbnormal || false,
-      critical: test.isCritical || false,
-      report,
-      idx: testIdx
-    }))
-  );
+  if (!report) {
+    return <div className="p-6">No report selected.</div>;
+  }
 
-  // Filter for pending results (no result entered yet)
-  const pendingResults = allResults.filter(result => 
-    !result.result || result.result.trim() === ''
-  );
+  const patient = patients.find(p => p.id === report.patientId);
+  const doctor = doctors.find(d => d.id === report.doctorId);
+  const readOnly = report.status === 'verified' || report.status === 'locked' || !hasPermission('reports', 'edit');
 
-  // Filter results based on search and filters
-  const filteredResults = (showPendingOnly ? pendingResults : allResults).filter(result => {
-    const patient = patients.find(p => p.id === result.patientId);
-    const doctor = doctors.find(d => d.id === result.doctorId);
-    const test = tests.find(t => t.id === result.testId);
+  const setResult = (index: number, field: 'result' | 'normalRange' | 'unit' | 'isAbnormal', value: any) => {
+    if (readOnly) return;
+    const copy: Report = JSON.parse(JSON.stringify(local));
+    // @ts-expect-error
+    copy.tests[index][field] = value;
     
-    const matchesSearch = searchTerm === '' || 
-      patient?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doctor?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      test?.name.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesPatient = filter.patient === '' || result.patientId === filter.patient;
-    const matchesDoctor = filter.doctor === '' || result.doctorId === filter.doctor;
-    const matchesTest = filter.test === '' || result.testId === filter.test;
-    const matchesAbnormal = filter.abnormal === '' || 
-      (filter.abnormal === 'true' && result.abnormal) ||
-      (filter.abnormal === 'false' && !result.abnormal);
-    const matchesDate = filter.date === '' || 
-      result.createdAt.toDateString() === new Date(filter.date).toDateString();
-    
-    return matchesSearch && matchesPatient && matchesDoctor && matchesTest && matchesAbnormal && matchesDate;
-  });
-
-  const handleEditResult = (result: ResultRow) => {
-    setEditingResult(result);
-    setEditResultValue(result.result || '');
-    setEditValidationError('');
-    setEditCriticalComment('');
-    setEditAcknowledgeCritical(false);
-    setWorkflowStep('entry');
-  };
-
-  const handleSaveDraft = () => {
-    if (!editingResult) return;
-    
-    setShowSuccessMessage(true);
-    setSuccessMessage('Draft saved successfully. You can continue editing later.');
-    setTimeout(() => setShowSuccessMessage(false), 3000);
-    setWorkflowStep('draft');
-  };
-
-  const handleSaveResult = () => {
-    if (!editingResult) return;
-    
-    // Validation: required
-    if (!editResultValue.trim()) {
-      setEditValidationError('Result is required.');
-      return;
+    // Sync first parameter result with main test result for consistency
+    if (field === 'result' && copy.tests[index].parameters && copy.tests[index].parameters.length > 0) {
+      copy.tests[index].parameters[0].result = value;
     }
     
-    // Abnormal/critical flagging (simple demo: if value contains 'critical')
-    const isCritical = editResultValue.toLowerCase().includes('critical');
-    const abnormalParams: string[] = [];
-    const criticalParams: string[] = [];
-    
-    if (isCritical && (!editAcknowledgeCritical || !editCriticalComment.trim())) {
-      setEditValidationError('Critical results detected. Please acknowledge and add a comment.');
-      return;
-    }
-    
-    // Update the report
-    const report = reports.find(r => r.id === editingResult.reportId);
-    if (!report) return;
-    
-    const updatedTests = [...(report.tests || [])];
-    const idx = updatedTests.findIndex(t => t.testId === editingResult.testId);
-    if (idx >= 0) {
-      updatedTests[idx] = {
-        ...updatedTests[idx],
-        result: editResultValue,
-        isAbnormal: false,
-        isCritical,
-        abnormalParams,
-        criticalParams,
-        criticalComment: isCritical ? editCriticalComment : undefined
-      };
-    }
-    
-    updateReport(report.id, { tests: updatedTests });
-    
-    // Add notification
-    addNotification({
-      type: isCritical ? 'warning' : 'info',
-      category: 'report',
-      title: 'Result Entered',
-      message: `Result entered for test ${editingResult.testName} (${isCritical ? 'Critical' : 'Normal'})`,
-      isRead: false,
-      priority: isCritical ? 'high' : 'medium'
-    });
-    
-    // Find next pending test
-    const remainingPending = pendingResults.filter(r => 
-      r.reportId !== editingResult.reportId || r.testId !== editingResult.testId
-    );
-    const nextTest = remainingPending.length > 0 ? remainingPending[0] : null;
-    
-    // Show success message
-    setSuccessMessage(
-      isCritical 
-        ? `Critical result saved successfully! Please ensure the doctor is notified immediately.`
-        : `Result saved successfully for ${editingResult.testName}`
-    );
-    setShowSuccessMessage(true);
-    setNextPendingTest(nextTest);
-    setWorkflowStep('completed');
-    
-    // Reset form
-    setEditingResult(null);
-    setEditResultValue('');
-    setEditValidationError('');
-    setEditCriticalComment('');
-    setEditAcknowledgeCritical(false);
-    
-    // Auto-hide success message after 5 seconds
-    setTimeout(() => setShowSuccessMessage(false), 5000);
+    setLocal(copy);
   };
 
-  const handleNextPendingTest = () => {
-    if (nextPendingTest) {
-      handleEditResult(nextPendingTest);
+  const updateParam = (testIdx: number, paramIdx: number, field: keyof ReportTestParameter, value: any) => {
+    if (readOnly) return;
+    const copy: Report = JSON.parse(JSON.stringify(local));
+    // @ts-expect-error
+    copy.tests[testIdx].parameters[paramIdx][field] = value;
+    
+    // Sync main test result with first parameter result for better UX
+    if (field === 'result' && paramIdx === 0) {
+      copy.tests[testIdx].result = value;
+    }
+    
+    setLocal(copy);
+  };
+
+  const validateBeforeComplete = (): boolean => {
+    const hasEmpty = local.tests.some(t => !t.result && (!t.parameters || t.parameters.length === 0));
+    if (hasEmpty) {
+      alert('Please enter results for all tests before completing.');
+      return false;
+    }
+    return true;
+  };
+
+  const saveProgress = () => {
+    if (readOnly) return;
+    updateReport(report.id, { tests: local.tests, interpretation: (local as any).interpretation || '', status: 'in_progress', userId: user?.id });
+    alert('Progress saved');
+  };
+
+  const markCompleted = () => {
+    if (readOnly) return;
+    if (!validateBeforeComplete()) return;
+    updateReport(report.id, { tests: local.tests, interpretation: (local as any).interpretation || '', status: 'completed', userId: user?.id });
+    alert('Report marked as completed');
+  };
+
+  const loadParameterTemplates = (testIndex: number) => {
+    if (readOnly) return;
+    const test = local.tests[testIndex];
+    const testTemplate = tests.find(t => t.id === test.testId);
+    
+    console.log(`TestReporting: Manually loading templates for test ${test.testName} (${test.testId})`);
+    console.log(`TestReporting: Found template:`, testTemplate);
+    
+    if (testTemplate && testTemplate.parameterTemplates && testTemplate.parameterTemplates.length > 0) {
+      console.log(`TestReporting: Loading ${testTemplate.parameterTemplates.length} parameters`);
+      
+      const parameters: ReportTestParameter[] = testTemplate.parameterTemplates.map(template => ({
+        name: template.name,
+        result: '',
+        normalRange: template.normalRange,
+        unit: template.unit || '',
+        isAbnormal: false
+      }));
+      
+      const copy: Report = JSON.parse(JSON.stringify(local));
+      copy.tests[testIndex].parameters = parameters;
+      
+      // Also populate the main test fields with the first parameter's template values
+      const firstParam = testTemplate.parameterTemplates[0];
+      copy.tests[testIndex].normalRange = firstParam.normalRange;
+      copy.tests[testIndex].unit = firstParam.unit || '';
+      
+      console.log(`TestReporting: Updated test with parameters and main fields:`, copy.tests[testIndex]);
+      
+      setLocal(copy);
+      alert(`Loaded ${parameters.length} parameters from test template`);
+    } else {
+      console.log(`TestReporting: No parameter templates found for test ${test.testName}`);
+      alert('No parameter templates found for this test');
     }
   };
-
-  const confirmAction = () => {
-    if (confirmationAction) {
-      confirmationAction();
-    }
-    setShowConfirmation(false);
-    setConfirmationAction(null);
-  };
-
-  const handleMarkReportCompleted = (reportId: string) => {
-    updateReport(reportId, { status: 'completed' });
-    addNotification({
-      type: 'info',
-      category: 'report',
-      title: 'Report Completed',
-      message: 'Report marked as completed and ready for verification',
-      isRead: false,
-      priority: 'medium'
-    });
-    setWorkflowStep('reporting');
-  };
-
-  const getWorkflowStepInfo = () => {
-    switch (workflowStep) {
-      case 'entry':
-        return {
-          title: 'Result Entry',
-          description: 'Enter test results and save as draft or complete',
-          icon: <FileText className="w-5 h-5" />,
-          color: 'blue'
-        };
-      case 'draft':
-        return {
-          title: 'Draft Saved',
-          description: 'Results saved as draft. You can continue editing later',
-          icon: <Save className="w-5 h-5" />,
-          color: 'yellow'
-        };
-      case 'completed':
-        return {
-          title: 'Result Completed',
-          description: 'Result saved successfully. Ready for report completion',
-          icon: <CheckCircle className="w-5 h-5" />,
-          color: 'green'
-        };
-      case 'reporting':
-        return {
-          title: 'Reporting Area',
-          description: 'Report completed and ready for verification',
-          icon: <Eye className="w-5 h-5" />,
-          color: 'purple'
-        };
-      default:
-        return {
-          title: 'Add Results',
-          description: 'Enter and manage test results',
-          icon: <Play className="w-5 h-5" />,
-          color: 'blue'
-        };
-    }
-  };
-
-  const workflowInfo = getWorkflowStepInfo();
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      {/* Workflow Success Banner */}
-      {showSuccessMessage && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 animate-slide-down">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <CheckCircle className="w-6 h-6 text-green-600" />
-              <div>
-                <h3 className="text-lg font-semibold text-green-800">{successMessage}</h3>
-                {nextPendingTest && (
-                  <button
-                    onClick={handleNextPendingTest}
-                    className="mt-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center space-x-2"
-                  >
-                    <ArrowRight className="w-4 h-4" />
-                    <span>Next Test</span>
-                  </button>
-                )}
-              </div>
-            </div>
-            <button 
-              onClick={() => setShowSuccessMessage(false)}
-              className="text-green-600 hover:text-green-800"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      )}
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">Enter Test Results</h1>
 
-      {/* Workflow Guide Banner */}
-      {showWorkflowGuide && (
-        <div className={`bg-${workflowInfo.color}-50 border border-${workflowInfo.color}-200 rounded-lg p-4 mb-6`}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              {workflowInfo.icon}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800">{workflowInfo.title}</h3>
-                <p className="text-gray-600">{workflowInfo.description}</p>
-                <div className="mt-2 text-sm text-gray-500">
-                  <strong>Workflow:</strong> Entry → Draft/Complete → Reporting → Verification
-                </div>
-              </div>
-            </div>
-            <button 
-              onClick={() => setShowWorkflowGuide(false)}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
+      <div className="bg-white rounded-lg shadow p-4 mb-4">
+        <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
+          <div><strong>Report ID:</strong> {report.id}</div>
+          <div><strong>Invoice:</strong> {report.invoiceId}</div>
+          <div><strong>Patient:</strong> {patient?.name}</div>
+          <div><strong>Doctor:</strong> {doctor?.name || '-'}</div>
+          <div><strong>Status:</strong> {report.status}</div>
         </div>
-      )}
+      </div>
 
-      {/* User Guidance Banner */}
-      {showPendingOnly && pendingResults.length > 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-          <div className="flex items-center space-x-3">
-            <Info className="w-6 h-6 text-blue-600" />
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+          <div className="flex justify-between items-center">
             <div>
-              <h3 className="text-lg font-semibold text-blue-800">Workflow Guidance</h3>
-              <p className="text-blue-600">Step-by-step process:</p>
-              <ol className="list-decimal list-inside text-blue-600 mt-1 space-y-1">
-                <li>Select a pending test from the list below</li>
-                <li>Enter the test result in the popup form</li>
-                <li>Save as draft or complete the result</li>
-                <li>For critical results, acknowledge and add comments</li>
-                <li>Mark report as completed when all tests are done</li>
-              </ol>
+              <h3 className="text-lg font-semibold text-gray-900">Test Results</h3>
+              <p className="text-sm text-gray-600">Enter test results using standard parameters from test management</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowDetailedView(!showDetailedView)}
+                className={`px-3 py-2 text-sm font-medium rounded-lg border transition-colors ${
+                  showDetailedView 
+                    ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700' 
+                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                }`}
+                title={showDetailedView ? "Switch to simple view" : "Switch to detailed view"}
+              >
+                {showDetailedView ? "Simple View" : "Detailed View"}
+              </button>
+              
+              {/* Refresh button to sync with latest invoice changes */}
+              <button
+                onClick={() => {
+                  // Force a refresh of the report data
+                  const updatedReport = reports.find(r => r.id === report.id);
+                  if (updatedReport) {
+                    setLocal(updatedReport);
+                  }
+                }}
+                className="px-3 py-2 text-sm font-medium rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors"
+                title="Refresh report data to sync with latest invoice changes"
+              >
+                🔄 Refresh
+              </button>
             </div>
           </div>
+          <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm text-blue-800">
+              <strong>💡 Template System:</strong> When a test has parameter templates, the main fields will be automatically populated with the first parameter's values. 
+              Use the "Load Standard Parameters" button to load all parameters, or manually enter results in the main fields.
+              {showDetailedView && " You can now see both the main test fields and detailed parameters simultaneously."}
+            </p>
+          </div>
+          
+          {/* Show warning if tests were recently updated */}
+          {report && report.statusHistory && report.statusHistory.length > 1 && (
+            <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <div className="flex items-center gap-2">
+                <span className="text-amber-800">⚠️</span>
+                <p className="text-sm text-amber-800">
+                  <strong>Test List Updated:</strong> This report's test list was recently modified from the invoice. 
+                  Please review all tests and ensure results are entered for any newly added tests.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
-      )}
-
-      {/* Progress Indicator */}
-      <div className="bg-white rounded-lg p-4 mb-6 shadow-sm">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="text-lg font-semibold text-gray-800">Progress Overview</h3>
-          <div className="text-sm text-gray-600">
-            {pendingResults.length} pending • {allResults.length - pendingResults.length} completed
-          </div>
-        </div>
-        <div className="w-full bg-gray-200 rounded-full h-2">
-          <div 
-            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-            style={{ width: `${((allResults.length - pendingResults.length) / allResults.length) * 100}%` }}
-          ></div>
-        </div>
-      </div>
-
-      {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            {showPendingOnly ? 'Add Results - Pending Tests' : 'Add Results - All Tests'}
-          </h1>
-          <p className="text-gray-600 mt-1">
-            {showPendingOnly 
-              ? `Manage ${pendingResults.length} pending test results`
-              : `View and manage all ${allResults.length} test results`
-            }
-          </p>
-        </div>
-        <div className="flex space-x-3">
-          <button
-            onClick={() => setShowPendingOnly(!showPendingOnly)}
-            className={`px-4 py-2 rounded-lg flex items-center space-x-2 ${
-              showPendingOnly 
-                ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
-          >
-            <Eye className="w-4 h-4" />
-            <span>{showPendingOnly ? 'Show All' : 'Show Pending Only'}</span>
-          </button>
-                     {hasPermission('reports', 'export') && (
-             <button
-               onClick={() => exportReportsToExcel(reports, patients, doctors)}
-               className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center space-x-2"
-             >
-               <Download className="w-4 h-4" />
-               <span>Export</span>
-             </button>
-           )}
-        </div>
-      </div>
-
-      {/* Search and Filters */}
-      <div className="bg-white rounded-lg p-4 mb-6 shadow-sm">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-          <div>
-            <input
-              type="text"
-              placeholder="Search tests..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <select
-              value={filter.patient}
-              onChange={(e) => setFilter({...filter, patient: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">All Patients</option>
-              {patients.map(patient => (
-                <option key={patient.id} value={patient.id}>{patient.name}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <select
-              value={filter.doctor}
-              onChange={(e) => setFilter({...filter, doctor: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">All Doctors</option>
-              {doctors.map(doctor => (
-                <option key={doctor.id} value={doctor.id}>{doctor.name}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <select
-              value={filter.test}
-              onChange={(e) => setFilter({...filter, test: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">All Tests</option>
-              {tests.map(test => (
-                <option key={test.id} value={test.id}>{test.name}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <select
-              value={filter.abnormal}
-              onChange={(e) => setFilter({...filter, abnormal: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">All Results</option>
-              <option value="true">Abnormal Only</option>
-              <option value="false">Normal Only</option>
-            </select>
-          </div>
-          <div>
-            <input
-              type="date"
-              value={filter.date}
-              onChange={(e) => setFilter({...filter, date: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Results Table */}
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+        
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="min-w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Patient
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Doctor
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Test
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Result
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Test</th>
+                {/* Show these headers when detailed view is enabled OR when no parameters are loaded */}
+                {(showDetailedView || !local.tests.some(t => t.parameters && t.parameters.length > 0)) && (
+                  <>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Result</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Normal Range</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
+                    <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Abnormal</th>
+                  </>
+                )}
+                {/* Show summary header when parameters are loaded and not in detailed view */}
+                {(!showDetailedView && local.tests.some(t => t.parameters && t.parameters.length > 0)) && (
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                )}
+                <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Parameters</th>
               </tr>
             </thead>
-                         <tbody className="bg-white divide-y divide-gray-200">
-               {filteredResults.map((result) => {
-                 const patient = patients.find(p => p.id === result.patientId);
-                 const doctor = doctors.find(d => d.id === result.doctorId);
-                 const test = tests.find(t => t.id === result.testId);
-                 const report = reports.find(r => r.id === result.reportId);
-                
-                return (
-                  <tr key={`${result.reportId}-${result.testId}`} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{patient?.name}</div>
-                      <div className="text-sm text-gray-500">{patient?.patientId}</div>
-                    </td>
-                                         <td className="px-6 py-4 whitespace-nowrap">
-                       <div className="text-sm text-gray-900">{doctor?.name}</div>
-                       <div className="text-sm text-gray-500">{doctor?.specialty}</div>
-                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{test?.name}</div>
-                      <div className="text-sm text-gray-500">{test?.sampleRequired}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {result.result ? (
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            result.critical 
-                              ? 'bg-red-100 text-red-800' 
-                              : result.abnormal 
-                                ? 'bg-yellow-100 text-yellow-800' 
-                                : 'bg-green-100 text-green-800'
-                          }`}>
-                            {result.result}
-                          </span>
-                        ) : (
-                          <span className="text-gray-400 italic">Pending</span>
-                        )}
+            <tbody className="bg-white divide-y divide-gray-200">
+              {local.tests.map((t, idx) => (
+                <tr key={t.testId} className="hover:bg-gray-50">
+                  <td className="px-6 py-4">
+                    <div className="text-sm font-medium text-gray-900">{t.testName}</div>
+                    {t.parameters && t.parameters.length > 0 && (
+                      <div className="text-xs text-blue-600 mt-1">
+                        ✓ {t.parameters.length} parameter{t.parameters.length !== 1 ? 's' : ''} loaded
                       </div>
-                      {result.critical && (
-                        <div className="text-xs text-red-600 mt-1">Critical Result</div>
+                    )}
+                  </td>
+                  
+                  {/* Show main test fields when detailed view is enabled OR when NO parameters are loaded */}
+                  {(showDetailedView || !t.parameters || t.parameters.length === 0) ? (
+                    <>
+                      <td className="px-6 py-4">
+                        <input 
+                          disabled={readOnly} 
+                          value={t.result} 
+                          onChange={e => setResult(idx, 'result', e.target.value)} 
+                          placeholder="Enter result"
+                          className={`w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500 ${
+                            t.parameters && t.parameters.length > 0 && !showDetailedView ? 'border-blue-300 bg-blue-50' : 'border-gray-300'
+                          }`}
+                        />
+                        {t.parameters && t.parameters.length > 0 && !showDetailedView && (
+                          <div className="text-xs text-blue-600 mt-1">Template available</div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <input 
+                          disabled={readOnly} 
+                          value={t.normalRange} 
+                          onChange={e => setResult(idx, 'normalRange', e.target.value)} 
+                          placeholder="Normal range"
+                          className={`w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500 ${
+                            t.parameters && t.parameters.length > 0 && !showDetailedView ? 'border-blue-300 bg-blue-50' : 'border-gray-300'
+                          }`}
+                        />
+                      </td>
+                      <td className="px-6 py-4">
+                        <input 
+                          disabled={readOnly} 
+                          value={t.unit || ''} 
+                          onChange={e => setResult(idx, 'unit', e.target.value)} 
+                          placeholder="Unit"
+                          className={`w-full px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-500 ${
+                            t.parameters && t.parameters.length > 0 && !showDetailedView ? 'border-blue-300 bg-blue-50' : 'border-gray-300'
+                          }`}
+                        />
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <input 
+                          disabled={readOnly} 
+                          type="checkbox" 
+                          checked={t.isAbnormal} 
+                          onChange={e => setResult(idx, 'isAbnormal', e.target.checked)}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:bg-gray-100"
+                        />
+                      </td>
+                    </>
+                  ) : (
+                    <>
+                      {/* When parameters are loaded and not in detailed view, show a summary view */}
+                      <td className="px-6 py-4" colSpan={4}>
+                        <div className="text-sm text-gray-600">
+                          <span className="font-medium">Template loaded:</span> {t.parameters.length} parameter{t.parameters.length !== 1 ? 's' : ''} available
+                        </div>
+                      </td>
+                    </>
+                  )}
+                  
+                  <td className="px-6 py-4">
+                    <div className="space-y-3">
+                      {/* Load Parameters Button - Only show if no parameters loaded */}
+                      {(!t.parameters || t.parameters.length === 0) && (
+                        <div className="text-center">
+                          <button 
+                            disabled={readOnly} 
+                            onClick={() => loadParameterTemplates(idx)} 
+                            className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ${readOnly ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm'}`}
+                            title="Load parameters from test template"
+                          >
+                            <Download className="w-4 h-4" /> Load Standard Parameters
+                          </button>
+                        </div>
                       )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        report?.status === 'completed' 
-                          ? 'bg-green-100 text-green-800'
-                          : report?.status === 'verified'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {report?.status || 'pending'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {result.createdAt.toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2">
-                        {!result.result && (
-                          <button
-                            onClick={() => handleEditResult(result)}
-                            className="text-blue-600 hover:text-blue-900 bg-blue-50 px-3 py-1 rounded-lg hover:bg-blue-100"
-                          >
-                            Add/Edit Result
-                          </button>
-                        )}
-                        {result.result && (
-                          <button
-                            onClick={() => handleEditResult(result)}
-                            className="text-green-600 hover:text-green-900 bg-green-50 px-3 py-1 rounded-lg hover:bg-green-100"
-                          >
-                            Edit Result
-                          </button>
-                        )}
-                        {report && report.status === 'pending' && report.tests.every(t => t.result) && (
-                          <button
-                            onClick={() => handleMarkReportCompleted(report.id)}
-                            className="text-purple-600 hover:text-purple-900 bg-purple-50 px-3 py-1 rounded-lg hover:bg-purple-100"
-                          >
-                            Mark Complete
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
+                      
+                      {/* Parameters List - Only show if parameters exist */}
+                      {(t.parameters && t.parameters.length > 0) && (
+                        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                          <div className="bg-gray-50 px-3 py-2 border-b border-gray-200">
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm font-medium text-gray-700">
+                                {t.parameters.length} Parameter{t.parameters.length !== 1 ? 's' : ''}
+                              </span>
+                              <span className="text-xs text-blue-600 font-medium bg-blue-100 px-2 py-1 rounded">Standard Template Values</span>
+                            </div>
+                          </div>
+                          
+                          <div className="divide-y divide-gray-200">
+                            {t.parameters.map((p, pIdx) => (
+                              <div key={pIdx} className="p-3">
+                                <div className="grid grid-cols-4 gap-3">
+                                  <div>
+                                    <label className="block text-xs font-medium text-gray-600 mb-1">Parameter</label>
+                                    <input 
+                                      disabled={true} 
+                                      value={p.name} 
+                                      className="w-full px-2 py-1 border border-gray-200 rounded text-sm bg-gray-50 text-gray-700" 
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-xs font-medium text-gray-600 mb-1">Result</label>
+                                    <input 
+                                      disabled={readOnly} 
+                                      value={p.result} 
+                                      onChange={e => updateParam(idx, pIdx, 'result', e.target.value)} 
+                                      placeholder="Enter result" 
+                                      className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100" 
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-xs font-medium text-gray-600 mb-1">Normal Range</label>
+                                    <input 
+                                      disabled={true} 
+                                      value={p.normalRange} 
+                                      className="w-full px-2 py-1 border border-gray-200 rounded text-sm bg-gray-50 text-gray-700" 
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-xs font-medium text-gray-600 mb-1">Unit</label>
+                                    <input 
+                                      disabled={true} 
+                                      value={p.unit || ''} 
+                                      className="w-full px-2 py-1 border border-gray-200 rounded text-sm bg-gray-50 text-gray-700" 
+                                    />
+                                  </div>
+                                </div>
+                                {/* Add abnormal checkbox for each parameter */}
+                                <div className="mt-2 flex items-center gap-2">
+                                  <input 
+                                    disabled={readOnly} 
+                                    type="checkbox" 
+                                    checked={p.isAbnormal} 
+                                    onChange={e => updateParam(idx, pIdx, 'isAbnormal', e.target.checked)}
+                                    className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded disabled:bg-gray-100"
+                                  />
+                                  <label className="text-xs text-gray-600">Mark as abnormal</label>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
-        
-        {filteredResults.length === 0 && (
-          <div className="text-center py-12">
-            <div className="text-gray-400 text-lg">
-              {showPendingOnly ? 'No pending tests found' : 'No test results found'}
-            </div>
-            <div className="text-gray-500 mt-2">
-              {showPendingOnly 
-                ? 'All tests have been completed or try adjusting your filters'
-                : 'Try adjusting your search criteria or filters'
-              }
-            </div>
+      </div>
+
+      <div className="bg-white rounded-lg shadow p-4 mt-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">Narrative / Interpretation</label>
+        <ReactQuill readOnly={readOnly} theme={readOnly ? undefined : 'snow'} value={(local as any)?.interpretation || ''} onChange={html => !readOnly && setLocal({ ...(local as any), interpretation: html })} />
+      </div>
+
+      <div className="mt-4 flex gap-2">
+        <button disabled={readOnly} onClick={saveProgress} className={`inline-flex items-center gap-2 px-4 py-2 rounded text-white ${readOnly ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'}`}>
+          <Save className="w-4 h-4" /> Save Progress
+        </button>
+        <button disabled={readOnly} onClick={markCompleted} className={`inline-flex items-center gap-2 px-4 py-2 rounded text-white ${readOnly ? 'bg-gray-400 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700'}`}>
+          <CheckCircle className="w-4 h-4" /> Mark Completed
+        </button>
+        {local.tests.some(t => t.isAbnormal || (t.parameters || []).some(p => p.isAbnormal)) && (
+          <div className="inline-flex items-center gap-1 text-amber-700 bg-amber-50 px-3 py-2 rounded">
+            <AlertTriangle className="w-4 h-4" /> Abnormal results present
           </div>
         )}
       </div>
-
-      {/* Result Entry Modal */}
-      {editingResult && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-900">
-                {editingResult.result ? 'Edit Test Result' : 'Add Test Result'}
-              </h2>
-              <button
-                onClick={() => setEditingResult(null)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            
-            <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="font-medium">Patient:</span> {patients.find(p => p.id === editingResult.patientId)?.name}
-                </div>
-                <div>
-                  <span className="font-medium">Doctor:</span> {doctors.find(d => d.id === editingResult.doctorId)?.name}
-                </div>
-                <div>
-                  <span className="font-medium">Test:</span> {tests.find(t => t.id === editingResult.testId)?.name}
-                </div>
-                <div>
-                  <span className="font-medium">Sample:</span> {tests.find(t => t.id === editingResult.testId)?.sampleRequired}
-                </div>
-              </div>
-            </div>
-
-            <form onSubmit={(e) => { e.preventDefault(); handleSaveResult(); }} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Test Result *
-                </label>
-                <textarea
-                  value={editResultValue}
-                  onChange={(e) => setEditResultValue(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  rows={4}
-                  placeholder="Enter the test result..."
-                />
-                {editValidationError && (
-                  <p className="text-red-600 text-sm mt-1">{editValidationError}</p>
-                )}
-              </div>
-
-              {editResultValue.toLowerCase().includes('critical') && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <div className="flex items-center space-x-2 mb-3">
-                    <AlertTriangle className="w-5 h-5 text-red-600" />
-                    <span className="font-medium text-red-800">Critical Result Detected</span>
-                  </div>
-                  <div className="space-y-3">
-                    <label className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        checked={editAcknowledgeCritical}
-                        onChange={(e) => setEditAcknowledgeCritical(e.target.checked)}
-                        className="rounded border-gray-300 text-red-600 focus:ring-red-500"
-                      />
-                      <span className="text-sm text-red-700">I acknowledge this is a critical result</span>
-                    </label>
-                    <div>
-                      <label className="block text-sm font-medium text-red-700 mb-1">
-                        Critical Comment *
-                      </label>
-                      <textarea
-                        value={editCriticalComment}
-                        onChange={(e) => setEditCriticalComment(e.target.value)}
-                        className="w-full px-3 py-2 border border-red-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                        rows={3}
-                        placeholder="Add a comment about the critical result..."
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="flex justify-end space-x-3 pt-4">
-                <button
-                  type="button"
-                  onClick={handleSaveDraft}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center space-x-2"
-                >
-                  <Save className="w-4 h-4" />
-                  <span>Save as Draft</span>
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-2"
-                >
-                  <Check className="w-4 h-4" />
-                  <span>Save Result</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Confirmation Dialog */}
-      {showConfirmation && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <div className="flex items-center space-x-3 mb-4">
-              <AlertTriangle className="w-6 h-6 text-red-600" />
-              <h3 className="text-lg font-semibold text-gray-900">Confirm Critical Action</h3>
-            </div>
-            <p className="text-gray-600 mb-6">
-              This action involves critical results. Are you sure you want to proceed?
-            </p>
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={() => setShowConfirmation(false)}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmAction}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-              >
-                Confirm
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

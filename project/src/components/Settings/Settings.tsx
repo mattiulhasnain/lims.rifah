@@ -31,7 +31,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import LoginCreator from '../Auth/LoginCreator';
-import { DEMO_USERS } from '../../context/AuthContext';
+// Remove DEMO_USERS import - we'll use users from AuthContext instead
 import { themePresets, type ThemePreset } from '../../context/ThemeContext';
 
 // Default settings structure
@@ -88,7 +88,7 @@ const defaultSettings = {
 
 const Settings: React.FC = () => {
   const { theme, setTheme, settings: themeSettings, updateSettings: updateThemeSettings, applyPreset } = useTheme();
-  const { user } = useAuth();
+  const { user, users } = useAuth();
   const { addNotification } = useData();
   const { settings: securitySettings, updateSettings: updateSecuritySettings } = useSecurity();
   const { settings: notificationSettings, updateSettings: updateNotificationSettings } = useNotifications();
@@ -1285,7 +1285,7 @@ const Settings: React.FC = () => {
             </button>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
-            {DEMO_USERS.map((account) => (
+            {users.map((account) => (
               <div
                 key={account.username}
                 className="text-left p-3 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors border border-gray-200 shadow-sm flex flex-col items-start"

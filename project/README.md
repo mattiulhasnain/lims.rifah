@@ -257,3 +257,22 @@ Developed by **Matti Ul Has Nain** for Rifah Laboratories
 ---
 
 **© 2025 Rifah Laboratories. All rights reserved.**
+
+## AI Feedback (Gemini)
+
+To enable AI-powered report feedback using Google Gemini:
+
+1. Backend: create `backend/.env` and add:
+```
+GEMINI_API_KEY=YOUR_GEMINI_KEY
+```
+2. Frontend: update `.env` with API base and optionally enable the AI UI:
+```
+VITE_API_BASE_URL=http://localhost:5000/api
+VITE_ENABLE_AI=true
+```
+3. Install backend deps and start services:
+```
+cd backend && npm install && npm run dev
+```
+4. In the app, go to Reports and click the AI Review button to open the AI Feedback page.

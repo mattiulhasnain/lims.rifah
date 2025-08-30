@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useData } from '../../context/DataContext';
 import { UserRole } from '../../types';
 import { 
   Plus, Eye, EyeOff, User, Mail, Lock, Shield,
@@ -12,13 +13,15 @@ interface LoginCreatorProps {
 
 const LoginCreator: React.FC<LoginCreatorProps> = ({ onBack }) => {
   const { createUser } = useAuth();
+  const { collectionCenters } = useData();
   const [formData, setFormData] = useState({
     username: '',
     email: '',
     name: '',
     password: '',
     confirmPassword: '',
-    role: 'receptionist' as UserRole
+    role: 'receptionist' as UserRole,
+    collectionCenterId: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -65,6 +68,10 @@ const LoginCreator: React.FC<LoginCreatorProps> = ({ onBack }) => {
       newErrors.confirmPassword = 'Passwords do not match';
     }
 
+    if (!formData.collectionCenterId.trim()) {
+      newErrors.collectionCenterId = 'Collection center is required';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -83,7 +90,8 @@ const LoginCreator: React.FC<LoginCreatorProps> = ({ onBack }) => {
         email: formData.email,
         name: formData.name,
         password: formData.password,
-        role: formData.role
+        role: formData.role,
+        collectionCenterId: formData.collectionCenterId
       });
 
       if (success) {
@@ -94,7 +102,8 @@ const LoginCreator: React.FC<LoginCreatorProps> = ({ onBack }) => {
           name: '',
           password: '',
           confirmPassword: '',
-          role: 'receptionist'
+          role: 'receptionist',
+          collectionCenterId: ''
         });
         setTimeout(() => {
           setSuccess(false);
@@ -103,7 +112,7 @@ const LoginCreator: React.FC<LoginCreatorProps> = ({ onBack }) => {
       } else {
         setErrors({ general: 'Failed to create user. Username or email may already exist.' });
       }
-    } catch (error) {
+    } catch {
       setErrors({ general: 'An error occurred while creating the user.' });
     } finally {
       setIsLoading(false);
@@ -243,6 +252,29 @@ const LoginCreator: React.FC<LoginCreatorProps> = ({ onBack }) => {
                 <p className="mt-1 text-sm text-gray-500">
                   {roles.find(r => r.value === formData.role)?.description}
                 </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Collection Center *
+                </label>
+                <div className="relative">
+                  <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <select
+                    required
+                    value={formData.collectionCenterId}
+                    onChange={(e) => setFormData({...formData, collectionCenterId: e.target.value})}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">Select Center</option>
+                    {collectionCenters.map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+                {errors.collectionCenterId && (
+                  <p className="mt-1 text-sm text-red-600">{errors.collectionCenterId}</p>
+                )}
               </div>
 
               <div>

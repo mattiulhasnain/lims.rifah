@@ -17,37 +17,22 @@ interface FileItem {
   patientId?: string;
   parentId?: string;
   path: string;
+  dataUrl?: string;
 }
 
 const FileManager: React.FC = () => {
   const { patients } = useData();
   const { user, hasPermission } = useAuth();
-  const [files, setFiles] = useState<FileItem[]>([
-    {
-      id: '1',
-      name: 'Patient Documents',
-      type: 'folder',
-      uploadedBy: 'System',
-      uploadedAt: new Date('2024-01-01'),
-      path: '/Patient Documents'
-    },
-    {
-      id: '2',
-      name: 'Lab Reports',
-      type: 'folder',
-      uploadedBy: 'System',
-      uploadedAt: new Date('2024-01-01'),
-      path: '/Lab Reports'
-    },
-    {
-      id: '3',
-      name: 'Prescriptions',
-      type: 'folder',
-      uploadedBy: 'System',
-      uploadedAt: new Date('2024-01-01'),
-      path: '/Prescriptions'
+  const [files, setFiles] = useState<FileItem[]>(() => {
+    const stored = localStorage.getItem('lab_files');
+    if (!stored) return [];
+    try {
+      const parsed: FileItem[] = JSON.parse(stored);
+      return parsed.map(f => ({ ...f, uploadedAt: new Date(f.uploadedAt) }));
+    } catch {
+      return [];
     }
-  ]);
+  });
 
   const [currentPath, setCurrentPath] = useState('/');
   const [searchTerm, setSearchTerm] = useState('');
@@ -56,6 +41,11 @@ const FileManager: React.FC = () => {
   const [showCreateFolder, setShowCreateFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [uploadFiles, setUploadFiles] = useState<FileList | null>(null);
+  const [previewFile, setPreviewFile] = useState<FileItem | null>(null);
+
+  React.useEffect(() => {
+    localStorage.setItem('lab_files', JSON.stringify(files));
+  }, [files]);
 
   const filteredFiles = files.filter(file => {
     const matchesSearch = file.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -81,25 +71,37 @@ const FileManager: React.FC = () => {
     return <File className="w-8 h-8 text-gray-600" />;
   };
 
-  const handleFileUpload = () => {
+  const readFileAsDataUrl = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleFileUpload = async () => {
     if (!uploadFiles || uploadFiles.length === 0) return;
 
-    Array.from(uploadFiles).forEach(file => {
+    const newItems: FileItem[] = [];
+    for (const file of Array.from(uploadFiles)) {
+      const dataUrl = await readFileAsDataUrl(file);
       const newFile: FileItem = {
         id: Math.random().toString(36).substr(2, 9),
         name: file.name,
         type: 'file',
         size: formatFileSize(file.size),
         mimeType: file.type,
-        uploadedBy: user?.name || '',
+        uploadedBy: user?.name || user?.username || 'User',
         uploadedAt: new Date(),
         patientId: selectedPatient || undefined,
-        path: currentPath + file.name
+        path: (currentPath.endsWith('/') ? currentPath : currentPath + '/') + file.name,
+        dataUrl
       };
-      
-      setFiles(prev => [...prev, newFile]);
-    });
+      newItems.push(newFile);
+    }
 
+    setFiles(prev => [...prev, ...newItems]);
     setShowUploadModal(false);
     setUploadFiles(null);
     setSelectedPatient('');
@@ -112,9 +114,9 @@ const FileManager: React.FC = () => {
       id: Math.random().toString(36).substr(2, 9),
       name: newFolderName,
       type: 'folder',
-      uploadedBy: user?.name || '',
+      uploadedBy: user?.name || user?.username || 'User',
       uploadedAt: new Date(),
-      path: currentPath + newFolderName
+      path: (currentPath.endsWith('/') ? currentPath : currentPath + '/') + newFolderName
     };
 
     setFiles(prev => [...prev, newFolder]);
@@ -129,8 +131,13 @@ const FileManager: React.FC = () => {
   };
 
   const downloadFile = (file: FileItem) => {
-    // Simulate download
-    alert(`Downloading ${file.name}`);
+    if (file.type !== 'file' || !file.dataUrl) return;
+    const link = document.createElement('a');
+    link.href = file.dataUrl;
+    link.download = file.name;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const openFolder = (folder: FileItem) => {
@@ -362,7 +369,7 @@ const FileManager: React.FC = () => {
           {filteredFiles.map((file) => (
             <div
               key={file.id}
-              className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+              className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer group"
               onDoubleClick={() => file.type === 'folder' ? openFolder(file) : downloadFile(file)}
             >
               <div className="flex flex-col items-center space-y-2">
@@ -395,7 +402,7 @@ const FileManager: React.FC = () => {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          // View file logic
+                          setPreviewFile(file);
                         }}
                         className="p-1 text-green-600 hover:text-green-800"
                         title="View"
@@ -429,6 +436,27 @@ const FileManager: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Preview Modal */}
+      {previewFile && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50" onClick={() => setPreviewFile(null)}>
+          <div className="bg-white rounded-lg p-4 w-full max-w-3xl max-h-[80vh] overflow-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-lg font-semibold">{previewFile.name}</h3>
+              <button className="text-gray-500 hover:text-gray-700" onClick={() => setPreviewFile(null)}>&times;</button>
+            </div>
+            {previewFile.mimeType?.startsWith('image/') && previewFile.dataUrl && (
+              <img src={previewFile.dataUrl} alt={previewFile.name} className="max-h-[70vh] mx-auto" />
+            )}
+            {previewFile.mimeType?.includes('pdf') && previewFile.dataUrl && (
+              <iframe title="preview" src={previewFile.dataUrl} className="w-full h-[70vh]" />
+            )}
+            {!previewFile.mimeType?.startsWith('image/') && !previewFile.mimeType?.includes('pdf') && (
+              <div className="text-sm text-gray-600">No inline preview available. Use Download to open this file.</div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

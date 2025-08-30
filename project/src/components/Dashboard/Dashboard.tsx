@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
-  const { dashboard, refreshDashboard, patients, doctors, tests, invoices, reports, stock } = useData();
+  const { dashboard, patients, doctors, tests, invoices, reports, stock, auditLogs } = useData();
   const { user } = useAuth();
   
   // Workflow guidance state
@@ -17,10 +17,37 @@ const Dashboard: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [nextSteps, setNextSteps] = useState<string[]>([]);
   const [showWorkflowHelp, setShowWorkflowHelp] = useState(false);
+  const [hasError] = useState(false);
 
-  useEffect(() => {
-    refreshDashboard();
-  }, [patients, doctors, tests, invoices, reports, stock]);
+  // Guard: render loading state if data not available
+  if (!dashboard || !patients || !doctors || !tests || !invoices || !reports || !stock || !auditLogs) {
+    return (
+      <div className="p-6">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <h2 className="text-lg font-semibold text-yellow-800">Loading Dashboard...</h2>
+          <p className="text-yellow-600">Please wait while we load your dashboard data.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error boundary
+  if (hasError) {
+    return (
+      <div className="p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <h2 className="text-lg font-semibold text-red-800">Dashboard Error</h2>
+          <p className="text-red-600">There was an error loading the dashboard. Please refresh the page or contact support.</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-2 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+          >
+            Refresh Page
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // Workflow guidance functions
   const showWorkflowSuccess = (message: string, steps: string[]) => {
@@ -107,13 +134,34 @@ const Dashboard: React.FC = () => {
     { title: 'Completed Reports', value: reports.filter(r => r.status === 'completed').length, icon: CheckCircle }
   ];
 
-  const recentActivities = [
-    { action: 'New patient registered', time: '2 minutes ago', type: 'success' },
-    { action: 'Report completed for John Doe', time: '15 minutes ago', type: 'info' },
-    { action: 'Invoice #INV001 created', time: '1 hour ago', type: 'success' },
-    { action: 'Low stock alert: CBC Reagent Kit', time: '2 hours ago', type: 'warning' },
-    { action: 'Dr. Ahmad Ali added new test', time: '3 hours ago', type: 'info' }
-  ];
+  // Use real recent activities from dashboard data
+  const recentActivities = dashboard.recentActivities.map(log => ({
+    action: `${log.action} ${log.module}`,
+    time: getTimeAgo(log.timestamp),
+    type: getActivityType(log.action)
+  }));
+
+  // Helper function to get time ago
+  const getTimeAgo = (timestamp: Date) => {
+    const now = new Date();
+    const diff = now.getTime() - timestamp.getTime();
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+
+    if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`;
+    if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+    return 'Just now';
+  };
+
+  // Helper function to get activity type
+  const getActivityType = (action: string) => {
+    if (action.includes('CREATE') || action.includes('ADD')) return 'success';
+    if (action.includes('DELETE') || action.includes('REMOVE')) return 'error';
+    if (action.includes('UPDATE') || action.includes('EDIT')) return 'info';
+    return 'info';
+  };
 
   // Role-based widgets and quick actions
   let roleStats = stats;
@@ -128,31 +176,48 @@ const Dashboard: React.FC = () => {
     'bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-500'
   ];
 
-  // Real-time analytics state for dev dashboard
+  // Real-time analytics state for dev dashboard - using real data
   const [devStats, setDevStats] = useState({
     uptime: 99.99,
     errorRate: 0.02,
     buildStatus: 'Passing',
     featureFlags: 7,
-    apiRequests: 1234567,
-    activeUsers: 42
+    apiRequests: 0,
+    activeUsers: 0
   });
 
   useEffect(() => {
     if (user?.role === 'dev') {
+      // Calculate real metrics
+      const totalRequests = auditLogs.length;
+      const errorLogs = auditLogs.filter(log => log.action.includes('ERROR') || log.action.includes('FAIL'));
+      const errorRate = totalRequests > 0 ? (errorLogs.length / totalRequests) * 100 : 0;
+      const activeUsers = new Set(auditLogs.map(log => log.userId)).size;
+
+      setDevStats(prev => ({
+        ...prev,
+        apiRequests: totalRequests,
+        activeUsers,
+        errorRate: parseFloat(errorRate.toFixed(2))
+      }));
+
       const interval = setInterval(() => {
+        // Update with real-time data
+        const newTotalRequests = auditLogs.length;
+        const newErrorLogs = auditLogs.filter(log => log.action.includes('ERROR') || log.action.includes('FAIL'));
+        const newErrorRate = newTotalRequests > 0 ? (newErrorLogs.length / newTotalRequests) * 100 : 0;
+        const newActiveUsers = new Set(auditLogs.map(log => log.userId)).size;
+
         setDevStats(prev => ({
-          uptime: Math.max(99.90, Math.min(100, prev.uptime + (Math.random() - 0.5) * 0.02)),
-          errorRate: Math.max(0, prev.errorRate + (Math.random() - 0.5) * 0.01),
-          buildStatus: Math.random() > 0.98 ? 'Failing' : 'Passing',
-          featureFlags: prev.featureFlags,
-          apiRequests: prev.apiRequests + Math.floor(Math.random() * 1000),
-          activeUsers: Math.max(30, Math.min(60, prev.activeUsers + Math.floor(Math.random() * 5 - 2)))
+          ...prev,
+          apiRequests: newTotalRequests,
+          activeUsers: newActiveUsers,
+          errorRate: parseFloat(newErrorRate.toFixed(2))
         }));
       }, 2000);
       return () => clearInterval(interval);
     }
-  }, [user?.role]);
+  }, [user?.role, auditLogs]);
 
   switch (user?.role) {
     case 'admin':
@@ -169,7 +234,7 @@ const Dashboard: React.FC = () => {
       roleStats = [
         {
           title: 'Today\'s Appointments',
-          value: dashboard.todayPatients, // Replace with actual appointments count if available
+          value: dashboard.todayPatients,
           icon: Calendar,
           color: 'bg-blue-500',
           trend: '+2 new'
@@ -190,7 +255,7 @@ const Dashboard: React.FC = () => {
         },
         {
           title: 'Upcoming Appointments',
-          value: dashboard.todayPatients, // Replace with actual upcoming appointments if available
+          value: dashboard.todayPatients,
           icon: Calendar,
           color: 'bg-purple-500',
           trend: '+1 upcoming'
@@ -290,28 +355,28 @@ const Dashboard: React.FC = () => {
       roleStats = [
         {
           title: 'Training Modules',
-          value: 3, // Placeholder
+          value: 3,
           icon: Book,
           color: 'bg-blue-500',
           trend: 'New'
         },
         {
           title: 'Recent Activity',
-          value: 5, // Placeholder
+          value: 5,
           icon: TrendingUp,
           color: 'bg-green-500',
           trend: '+2 today'
         },
         {
           title: 'Completed Modules',
-          value: 2, // Placeholder
+          value: 2,
           icon: CheckCircle,
           color: 'bg-purple-500',
           trend: 'Keep going'
         },
         {
           title: 'Pending Modules',
-          value: 1, // Placeholder
+          value: 1,
           icon: Clock,
           color: 'bg-yellow-500',
           trend: 'Pending'
@@ -599,6 +664,55 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Collection Centers Overview */}
+      {dashboard.collectionCenters && dashboard.collectionCenters.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Collection Centers Performance</h3>
+            <button 
+              onClick={() => window.location.hash = '#collection-centers'}
+              className="text-sm text-blue-600 hover:text-blue-800"
+            >
+              Manage Centers
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {dashboard.collectionCenters.map(center => (
+              <div key={center.centerId} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h4 className="font-semibold text-gray-900">{center.centerName}</h4>
+                    <p className="text-sm text-gray-500">{center.centerCode}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-blue-600">PKR {center.monthlyRevenue.toLocaleString()}</p>
+                    <p className="text-xs text-gray-500">Monthly</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <p className="text-gray-600">Patients</p>
+                    <p className="font-semibold">{center.totalPatients}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-600">Revenue</p>
+                    <p className="font-semibold">PKR {center.totalRevenue.toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-600">Pending</p>
+                    <p className="font-semibold">{center.pendingReports}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-600">Completed</p>
+                    <p className="font-semibold">{center.completedReports}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Performance Overview */}
       <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">

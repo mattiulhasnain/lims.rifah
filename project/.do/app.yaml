@@ -1,0 +1,43 @@
+name: rifah-lims
+services:
+- name: lims-backend
+  source_dir: /backend
+  github:
+    repo: your-username/your-repo-name
+    branch: main
+  run_command: npm start
+  environment_slug: node-js
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  envs:
+  - key: NODE_ENV
+    value: production
+  - key: PORT
+    value: "8080"
+  - key: DATABASE_URL
+    value: ${db.DATABASE_URL}
+  - key: JWT_SECRET
+    value: ${JWT_SECRET}
+  - key: CORS_ORIGIN
+    value: ${CORS_ORIGIN}
+
+- name: lims-frontend
+  source_dir: /
+  github:
+    repo: your-username/your-repo-name
+    branch: main
+  build_command: npm run build
+  run_command: npx serve -s dist -l 8080
+  environment_slug: static-site
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  envs:
+  - key: REACT_APP_API_URL
+    value: ${lims-backend.URL}
+
+databases:
+- name: db
+  engine: PG
+  version: "15"
+  production: false
+  size: db-s-1vcpu-1gb 

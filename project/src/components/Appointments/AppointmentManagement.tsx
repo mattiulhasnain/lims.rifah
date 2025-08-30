@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { useData } from '../../context/DataContext';
 import { useAuth } from '../../context/AuthContext';
 import { 
-  Plus, Search, Calendar, Clock, User, Phone,
-  CheckCircle, XCircle, AlertCircle, Edit
+  Plus, Search, Calendar, Clock, Phone,
+  CheckCircle, XCircle, AlertCircle
 } from 'lucide-react';
 
 interface Appointment {

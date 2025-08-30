@@ -1,264 +1,197 @@
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
 import { useData } from '../../context/DataContext';
 import { useAuth } from '../../context/AuthContext';
-import { User, Report } from '../../types';
-import { Eye, CheckCircle, Search, User as UserIcon, FileText, Calendar } from 'lucide-react';
+import { CheckCircle2, Lock } from 'lucide-react';
 import { createReportPDF } from '../../utils/pdfGenerator';
 
 const ReportVerification: React.FC = () => {
-  const { reports, patients, doctors, invoices, updateReport } = useData();
-  const { user, hasPermission } = useAuth();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'completed' | 'verified'>('all');
-  const [viewingReport, setViewingReport] = useState<Report | null>(null);
-  const [verifying, setVerifying] = useState<string | null>(null);
-  const [declineReason, setDeclineReason] = useState('');
+	const { reports, updateReport, patients, doctors } = useData();
+	const { user, hasPermission } = useAuth();
+	const selectedId = localStorage.getItem('lab_selected_report_id') || '';
+	const report = useMemo(() => reports.find(r => r.id === selectedId) || reports[0], [reports, selectedId]);
 
-  // Filter reports for verification
-  const filteredReports = reports.filter(report => {
-    const matchesStatus =
-      statusFilter === 'all'
-        ? ['completed', 'verified'].includes(report.status)
-        : report.status === statusFilter;
-    const patient = patients.find(p => p.id === report.patientId);
-    const doctor = doctors.find(d => d.id === report.doctorId);
-    const matchesSearch =
-      patient?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doctor?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      report.id.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesStatus && matchesSearch;
-  });
+	if (!report) {
+		return <div className="p-6">No report selected.</div>;
+	}
 
-  const totalReports = reports.filter(r => ['completed', 'verified'].includes(r.status)).length;
-  const completedCount = reports.filter(r => r.status === 'completed').length;
-  const verifiedCount = reports.filter(r => r.status === 'verified').length;
+	const patient = patients.find(p => p.id === report.patientId);
+	const doctor = doctors.find(d => d.id === report.doctorId);
+	const canDownload = report.status === 'verified';
+	const canVerifyPermission = report.status === 'completed' && (hasPermission('reports', 'verify') || user?.role === 'admin' || user?.role === 'pathologist');
+	const canLockPermission = report.status === 'verified' && (hasPermission('reports', 'verify') || user?.role === 'admin' || user?.role === 'pathologist');
 
-  const handleVerify = (report: Report) => {
-    if (!user || !hasPermission('reports', 'verify')) return;
-    if (!window.confirm('Are you sure you want to verify this report?')) return;
-    setVerifying(report.id);
-    updateReport(report.id, {
-      status: 'verified',
-      userId: user.id,
-      verifiedBy: user.id,
-      verifiedAt: new Date(),
-    });
-    setTimeout(() => setVerifying(null), 1000);
-  };
+	const verify = () => {
+		if (!canVerifyPermission) {
+			alert('You do not have permission to verify reports.');
+			return;
+		}
+		updateReport(report.id, { status: 'verified', userId: user?.id, verifiedBy: user?.name || user?.username, verifiedAt: new Date() as any });
+		alert('Report verified');
+	};
 
-  const handleDecline = (report: Report) => {
-    if (!user || !hasPermission('reports', 'verify')) return;
-    const reason = window.prompt('Enter reason for declining this report:', '');
-    if (!reason) return;
-    updateReport(report.id, {
-      status: 'declined',
-      userId: user.id,
-      declinedBy: user.id,
-      declinedAt: new Date(),
-      declineReason: reason,
-      statusHistory: [
-        ...(report.statusHistory || []),
-        { status: 'declined', changedBy: user.id, changedAt: new Date(), comment: reason }
-      ]
-    });
-  };
-  const handleUndo = (report: Report) => {
-    if (!user || !hasPermission('reports', 'verify')) return;
-    updateReport(report.id, {
-      status: 'completed',
-      userId: user.id,
-      statusHistory: [
-        ...(report.statusHistory || []),
-        { status: 'completed', changedBy: user.id, changedAt: new Date(), comment: 'Undo verification/decline' }
-      ]
-    });
-  };
+	const lock = () => {
+		if (!canLockPermission) {
+			alert(report.status !== 'verified' ? 'Locking is only allowed after verification.' : 'You do not have permission to lock reports.');
+			return;
+		}
+		updateReport(report.id, { status: 'locked', userId: user?.id });
+		alert('Report locked');
+	};
 
-  return (
-    <div className="p-6 space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold font-poppins text-gray-900">Report Verification</h1>
-          <p className="text-gray-600 font-inter">Verify completed laboratory reports</p>
-        </div>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            placeholder="Search by patient, doctor, or report ID..."
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-inter"
-          />
-          <select
-            value={statusFilter}
-            onChange={e => setStatusFilter(e.target.value as any)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-inter"
-          >
-            <option value="all">All</option>
-            <option value="completed">Completed</option>
-            <option value="verified">Verified</option>
-          </select>
-        </div>
-      </div>
-      {/* Summary Widgets */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-lg shadow p-4 border border-blue-100 flex flex-col items-center">
-          <span className="font-poppins text-3xl font-bold text-blue-700">{totalReports}</span>
-          <span className="font-inter text-gray-600">Total Reports</span>
-        </div>
-        <div className="bg-white rounded-lg shadow p-4 border border-yellow-100 flex flex-col items-center">
-          <span className="font-poppins text-3xl font-bold text-yellow-600">{completedCount}</span>
-          <span className="font-inter text-gray-600">Completed</span>
-        </div>
-        <div className="bg-white rounded-lg shadow p-4 border border-green-100 flex flex-col items-center">
-          <span className="font-poppins text-3xl font-bold text-green-600">{verifiedCount}</span>
-          <span className="font-inter text-gray-600">Verified</span>
-        </div>
-      </div>
-      {/* Reports Table/Card List */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 mt-4">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="py-3 px-4 text-left font-medium text-gray-900">Report ID</th>
-                <th className="py-3 px-4 text-left font-medium text-gray-900">Patient</th>
-                <th className="py-3 px-4 text-left font-medium text-gray-900">Doctor</th>
-                <th className="py-3 px-4 text-left font-medium text-gray-900">Status</th>
-                <th className="py-3 px-4 text-left font-medium text-gray-900">Verified By</th>
-                <th className="py-3 px-4 text-left font-medium text-gray-900">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredReports.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="text-center py-8 text-gray-400 font-inter">No reports found</td>
-                </tr>
-              )}
-              {filteredReports.map(report => {
-                const patient = patients.find(p => p.id === report.patientId);
-                const doctor = doctors.find(d => d.id === report.doctorId);
-                const verifiedUser = report.verifiedBy && report.verifiedBy !== '' ? report.verifiedBy : null;
-                return (
-                  <tr key={report.id} className="border-b border-gray-100 hover:bg-blue-50 transition">
-                    <td className="py-3 px-4 font-sourcecodepro text-blue-700">{report.id}</td>
-                    <td className="py-3 px-4 flex items-center gap-2">
-                      <UserIcon className="w-4 h-4 text-gray-400" />
-                      <span className="font-inter text-gray-900">{patient?.name}</span>
-                    </td>
-                    <td className="py-3 px-4 font-inter">{doctor?.name}</td>
-                    <td className="py-3 px-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-semibold font-inter ${report.status === 'verified' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800 animate-pulse'}`}>{report.status.toUpperCase()}</span>
-                    </td>
-                    <td className="py-3 px-4 font-inter">
-                      {report.status === 'verified' && (
-                        <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-semibold">
-                          {verifiedUser}
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-3 px-4 flex gap-2">
-                      <button
-                        className="p-1 text-blue-600 hover:text-blue-800"
-                        onClick={() => setViewingReport(report)}
-                        title="View Details"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      {report.status === 'completed' && hasPermission('reports', 'verify') && (
-                        <button
-                          className="p-1 text-green-600 hover:text-green-800"
-                          onClick={() => handleVerify(report)}
-                          disabled={verifying === report.id}
-                          title="Verify Report"
-                        >
-                          <CheckCircle className="w-4 h-4" />
-                        </button>
-                      )}
-                      {report.status === 'completed' && hasPermission('reports', 'verify') && (
-                        <button
-                          className="p-1 text-red-600 hover:text-red-800"
-                          onClick={() => handleDecline(report)}
-                          title="Decline Report"
-                        >
-                          Decline
-                        </button>
-                      )}
-                      {['verified', 'declined'].includes(report.status) && hasPermission('reports', 'verify') && (
-                        <button
-                          className="p-1 text-yellow-600 hover:text-yellow-800"
-                          onClick={() => handleUndo(report)}
-                          title="Undo"
-                        >
-                          Undo
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-      {/* Report Details Modal */}
-      {viewingReport && (() => {
-        const patient = patients.find(p => p.id === viewingReport.patientId);
-        const doctor = doctors.find(d => d.id === viewingReport.doctorId);
-        const invoice = invoices.find(inv => inv.id === viewingReport.invoiceId);
-        return (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fade-in">
-            <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl animate-slide-up">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-gray-900 font-poppins">Report Details</h2>
-                <button onClick={() => setViewingReport(null)} className="text-gray-500 hover:text-gray-700">×</button>
-              </div>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div><span className="font-semibold">Patient:</span> {patient?.name}</div>
-                  <div><span className="font-semibold">Doctor:</span> {doctor?.name}</div>
-                  <div><span className="font-semibold">Report ID:</span> {viewingReport.id}</div>
-                  <div><span className="font-semibold">Status:</span> {viewingReport.status}</div>
-                  <div><span className="font-semibold">Verified By:</span> {viewingReport.verifiedBy || '-'}</div>
-                  <div><span className="font-semibold">Verified At:</span> {viewingReport.verifiedAt ? new Date(viewingReport.verifiedAt).toLocaleString() : '-'}</div>
-                </div>
-                <div>
-                  <span className="font-semibold">Tests:</span>
-                  <ul className="list-disc ml-6 mt-1">
-                    {viewingReport.tests.map((t, idx) => (
-                      <li key={idx}>{t.testName} {t.result && (<span className="text-gray-500">- {t.result}</span>)}</li>
-                    ))}
-                  </ul>
-                </div>
-                <div>
-                  <span className="font-semibold">Interpretation:</span>
-                  <div className="bg-gray-50 rounded p-2 mt-1 font-inter text-sm">{viewingReport.interpretation || '-'}</div>
-                </div>
-                <div>
-                  <span className="font-semibold">Status Timeline:</span>
-                  <ol className="border-l-2 border-blue-500 pl-4 mt-2">
-                    {viewingReport.statusHistory.map((h, idx) => (
-                      <li key={idx} className="mb-2">
-                        <span className={`px-2 py-1 rounded-full text-xs font-semibold font-inter ${h.status === 'verified' ? 'bg-green-100 text-green-800' : h.status === 'declined' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>{h.status}</span>
-                        <span className="ml-2 text-xs text-gray-500">{new Date(h.changedAt).toLocaleString()} by {h.changedBy}</span>
-                        {h.comment && <span className="ml-2 text-xs text-gray-500 italic">({h.comment})</span>}
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-                <button
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 mt-4"
-                  onClick={() => createReportPDF(viewingReport)}
-                >
-                  Preview as PDF
-                </button>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
-    </div>
-  );
+	const downloadPdf = async () => {
+		if (!canDownload) {
+			alert('Please verify the report before printing.');
+			return;
+		}
+		await createReportPDF({
+			reportId: report.id,
+			patientName: patient?.name,
+			patientAge: patient?.age,
+			patientGender: patient?.gender,
+			patientContact: patient?.contact,
+			doctorName: doctor?.name || '-',
+			tests: report.tests,
+			interpretation: report.interpretation,
+			criticalValues: report.criticalValues,
+			verifiedBy: report.verifiedBy,
+			verifiedAt: report.verifiedAt,
+		});
+	};
+
+	return (
+		<div className="p-6">
+			<div className="flex items-center justify-between mb-6">
+				<div>
+					<h1 className="text-2xl font-bold text-gray-900">Report Verification</h1>
+					<p className="text-gray-600">Verify and approve completed test reports</p>
+				</div>
+			</div>
+
+			{/* Show warning if tests were recently updated */}
+			{report && report.statusHistory && report.statusHistory.length > 1 && (
+				<div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+					<div className="flex items-center gap-2">
+						<span className="text-amber-800">⚠️</span>
+						<p className="text-sm text-amber-800">
+							<strong>Test List Updated:</strong> This report's test list was recently modified from the invoice. 
+							Please review all tests before verification to ensure all results are complete and accurate.
+						</p>
+					</div>
+				</div>
+			)}
+
+			<div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+				<div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
+					<div><strong>Report ID:</strong> {report.id}</div>
+					<div><strong>Invoice:</strong> {report.invoiceId}</div>
+					<div><strong>Patient:</strong> {patient?.name}</div>
+					<div><strong>Doctor:</strong> {doctor?.name || '-'}</div>
+					<div><strong>Status:</strong> {report.status}</div>
+				</div>
+			</div>
+
+			<div className="flex gap-2 mb-6">
+				<button onClick={verify} disabled={!canVerifyPermission} className={`inline-flex items-center gap-2 px-4 py-2 rounded text-white ${canVerifyPermission ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-gray-400 cursor-not-allowed'}`}>
+					<CheckCircle2 className="w-4 h-4" /> Verify
+				</button>
+				<button onClick={lock} disabled={!canLockPermission} className={`inline-flex items-center gap-2 px-4 py-2 rounded text-white ${canLockPermission ? 'bg-gray-700 hover:bg-gray-800' : 'bg-gray-400 cursor-not-allowed'}`}>
+					<Lock className="w-4 h-4" /> Lock
+				</button>
+				<button onClick={downloadPdf} disabled={!canDownload} className={`inline-flex items-center gap-2 px-4 py-2 rounded text-white ${canDownload ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'}`} title={canDownload ? 'Download PDF' : 'Verify report before printing'}>
+					Download PDF
+				</button>
+			</div>
+
+			{/* Live Preview */}
+			<div className="bg-white shadow rounded overflow-hidden">
+				<div className="w-full">
+					<img src="/image.png" alt="Header" className="w-full" />
+				</div>
+				<div className="p-6">
+					<div className="mb-4 border p-4 bg-gray-50">
+						<div className="flex justify-between text-sm">
+							<div>
+								<p><strong>Patient:</strong> {patient?.name}</p>
+								<p><strong>Age/Gender:</strong> {patient?.age} / {patient?.gender}</p>
+								<p><strong>Contact:</strong> {patient?.contact}</p>
+							</div>
+							<div className="text-right">
+								<p><strong>Date:</strong> {new Date().toLocaleDateString()}</p>
+								<p><strong>Report ID:</strong> {report.id}</p>
+								<p><strong>Ref. By:</strong> {doctor?.name || '-'}</p>
+							</div>
+						</div>
+					</div>
+					<table className="w-full text-sm border-collapse">
+						<thead>
+							<tr className="bg-blue-800 text-white">
+								<th className="border px-3 py-2 text-left">Test</th>
+								<th className="border px-3 py-2 text-center">Result</th>
+								<th className="border px-3 py-2 text-center">Normal Range</th>
+								<th className="border px-3 py-2 text-center">Unit</th>
+								<th className="border px-3 py-2 text-center">Status</th>
+							</tr>
+						</thead>
+						<tbody>
+							{report.tests.map((t, idx) => (
+								<React.Fragment key={t.testId}>
+									<tr className={idx % 2 === 0 ? 'bg-gray-50' : ''}>
+										<td className="border px-3 py-2 font-medium">{t.testName}</td>
+										<td className="border px-3 py-2 text-center" style={{ color: t.isAbnormal ? '#dc2626' : undefined, fontWeight: t.isAbnormal ? 700 : 500 }}>{t.result}</td>
+										<td className="border px-3 py-2 text-center">{t.normalRange}</td>
+										<td className="border px-3 py-2 text-center">{t.unit || '-'}</td>
+										<td className="border px-3 py-2 text-center">
+											<span className={`font-semibold ${t.isAbnormal ? 'text-red-600' : 'text-green-600'}`}>{t.isAbnormal ? 'ABNORMAL' : 'NORMAL'}</span>
+										</td>
+									</tr>
+									{Array.isArray(t.parameters) && t.parameters.length > 0 && (
+										<tr>
+											<td colSpan={5} className="p-0">
+												<table className="w-full text-sm border-collapse">
+													<thead>
+														<tr className="bg-gray-200">
+															<th className="border px-2 py-1 text-left">Parameter</th>
+															<th className="border px-2 py-1 text-center">Result</th>
+															<th className="border px-2 py-1 text-center">Normal Range</th>
+															<th className="border px-2 py-1 text-center">Unit</th>
+															<th className="border px-2 py-1 text-center">Status</th>
+														</tr>
+													</thead>
+													<tbody>
+														{t.parameters.map((p, i) => (
+															<tr key={i} className={i % 2 === 0 ? '' : 'bg-gray-50'}>
+																<td className="border px-2 py-1">{p.name}</td>
+																<td className="border px-2 py-1 text-center" style={{ color: p.isAbnormal ? '#dc2626' : undefined, fontWeight: p.isAbnormal ? 700 : undefined }}>{p.result}</td>
+																<td className="border px-2 py-1 text-center">{p.normalRange}</td>
+																<td className="border px-2 py-1 text-center">{p.unit || '-'}</td>
+																<td className="border px-2 py-1 text-center">
+																	<span className={`font-semibold ${p.isAbnormal ? 'text-red-600' : 'text-green-600'}`}>{p.isAbnormal ? 'ABNORMAL' : 'NORMAL'}</span>
+																</td>
+															</tr>
+														))}
+													</tbody>
+												</table>
+											</td>
+										</tr>
+									)}
+								</React.Fragment>
+							))}
+						</tbody>
+					</table>
+
+					{report.interpretation && (
+						<div className="mt-4 border p-4 bg-gray-50">
+							<h3 className="font-semibold text-blue-800 mb-2">Clinical Interpretation & Recommendations</h3>
+							<div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: report.interpretation }} />
+						</div>
+					)}
+				</div>
+				<div className="w-full mt-4">
+					<img src="/image copy.png" alt="Footer" className="w-full" />
+				</div>
+			</div>
+		</div>
+	);
 };
 
 export default ReportVerification; 

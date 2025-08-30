@@ -5,7 +5,7 @@ import {
   Plus, Search, Filter, Edit, Trash2, 
   TestTube, CheckCircle, XCircle, Loader2
 } from 'lucide-react';
-import { Test } from '../../types';
+import { Test, TestParameterTemplate } from '../../types';
 import { sampleTypes } from '../../types/sampleTypes';
 
 // Toast component for feedback
@@ -35,7 +35,10 @@ const TestManagement: React.FC = () => {
     sampleType: '',
     referenceRange: '',
     unit: '',
-    isActive: true
+    isActive: true,
+    parameterTemplates: [] as TestParameterTemplate[],
+    isNarrative: false,
+    narrativeTemplate: ''
   });
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
@@ -85,6 +88,23 @@ const TestManagement: React.FC = () => {
     return Object.keys(errors).length === 0;
   };
 
+  const addParamTemplate = () => {
+    setFormData({
+      ...formData,
+      parameterTemplates: [...formData.parameterTemplates, { name: '', normalRange: '', unit: '' }]
+    });
+  };
+
+  const updateParamTemplate = (index: number, field: keyof TestParameterTemplate, value: any) => {
+    const copy = [...formData.parameterTemplates];
+    (copy[index] as any)[field] = value;
+    setFormData({ ...formData, parameterTemplates: copy });
+  };
+
+  const removeParamTemplate = (index: number) => {
+    setFormData({ ...formData, parameterTemplates: formData.parameterTemplates.filter((_, i) => i !== index) });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -94,19 +114,20 @@ const TestManagement: React.FC = () => {
         updateTest(editingTest.id, {
           ...formData,
           price: parseFloat(formData.price)
-        });
+        } as any);
         setToast({ type: 'success', message: 'Test updated successfully!' });
         setEditingTest(null);
       } else {
         addTest({
           ...formData,
           price: parseFloat(formData.price)
-        });
+        } as any);
         setToast({ type: 'success', message: 'Test added successfully!' });
       }
       setShowAddForm(false);
       setFormData({
-        name: '', category: '', price: '', sampleType: '', referenceRange: '', unit: '', isActive: true
+        name: '', category: '', price: '', sampleType: '', referenceRange: '', unit: '', isActive: true,
+        parameterTemplates: [], isNarrative: false, narrativeTemplate: ''
       });
       setFormErrors({});
     } catch {
@@ -125,7 +146,10 @@ const TestManagement: React.FC = () => {
       sampleType: test.sampleType,
       referenceRange: test.referenceRange || '',
       unit: test.unit || '',
-      isActive: test.isActive
+      isActive: test.isActive,
+      parameterTemplates: test.parameterTemplates || [],
+      isNarrative: !!test.isNarrative,
+      narrativeTemplate: test.narrativeTemplate || ''
     });
     setShowAddForm(true);
   };
@@ -155,7 +179,7 @@ const TestManagement: React.FC = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Test Management</h1>
-          <p className="text-gray-600">Manage laboratory tests and pricing</p>
+          <p className="text-gray-600">Manage laboratory tests, parameters and pricing</p>
         </div>
         {hasPermission('tests', 'create') && (
           <button
@@ -191,7 +215,7 @@ const TestManagement: React.FC = () => {
       {/* Add/Edit Test Form */}
       {showAddForm && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 animate-fade-in-up" onClick={() => setShowAddForm(false)}>
-          <div className="card w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-pop-in relative" onClick={e => e.stopPropagation()}>
+          <div className="card w-full max-w-3xl max-h-[90vh] overflow-y-auto animate-pop-in relative" onClick={e => e.stopPropagation()}>
             <button className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors" onClick={() => setShowAddForm(false)} aria-label="Close">
               <XCircle className="w-6 h-6" />
             </button>
@@ -285,6 +309,39 @@ const TestManagement: React.FC = () => {
                   </label>
                 </div>
               </div>
+
+              {/* Parameter Templates */}
+              <div className="border rounded-lg p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-semibold">Parameter Templates</h3>
+                  <button type="button" onClick={addParamTemplate} className="text-blue-600 hover:text-blue-700 inline-flex items-center gap-1"><Plus className="w-4 h-4" />Add</button>
+                </div>
+                <div className="space-y-2">
+                  {formData.parameterTemplates.map((pt, idx) => (
+                    <div key={idx} className="grid grid-cols-12 gap-2 items-center">
+                      <input value={pt.name} onChange={e => updateParamTemplate(idx, 'name', e.target.value)} placeholder="Parameter name" className="col-span-4 border rounded px-2 py-1" />
+                      <input value={pt.normalRange} onChange={e => updateParamTemplate(idx, 'normalRange', e.target.value)} placeholder="Normal range" className="col-span-5 border rounded px-2 py-1" />
+                      <input value={pt.unit || ''} onChange={e => updateParamTemplate(idx, 'unit', e.target.value)} placeholder="Unit" className="col-span-2 border rounded px-2 py-1" />
+                      <button type="button" onClick={() => removeParamTemplate(idx)} className="col-span-1 text-red-600 hover:text-red-700" aria-label="Remove"><Trash2 className="w-4 h-4" /></button>
+                    </div>
+                  ))}
+                  {formData.parameterTemplates.length === 0 && (
+                    <p className="text-sm text-gray-500">No parameters defined</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Narrative Option */}
+              <div className="border rounded-lg p-3 space-y-2">
+                <label className="inline-flex items-center gap-2">
+                  <input type="checkbox" checked={formData.isNarrative} onChange={e => setFormData({ ...formData, isNarrative: e.target.checked })} />
+                  <span>Enable narrative report (free text)</span>
+                </label>
+                {formData.isNarrative && (
+                  <textarea rows={4} value={formData.narrativeTemplate} onChange={e => setFormData({ ...formData, narrativeTemplate: e.target.value })} className="w-full border rounded px-2 py-1" placeholder="Default narrative template (optional)" />
+                )}
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Reference Range

@@ -1,10 +1,16 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Patient, Doctor, Test, Invoice, Report, StockItem, Expense, AuditLog, Dashboard, PaymentRecord, ReportComment, Notification, RateList } from '../types';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { Patient, Doctor, Test, Invoice, InvoiceTest, Report, StockItem, Expense, AuditLog, Dashboard, PaymentRecord, ReportComment, Notification, RateList, CollectionCenter, CollectionCenterSummary } from '../types';
 import Papa from 'papaparse';
-import testListCsv from '../../testlist.csv?raw';
-import consultantsCsv from '../../consultants_camelot_all.csv?raw';
+// Remove the problematic CSV imports and handle them differently
+import { DataCalculator } from '../utils/dataCalculator';
 
 interface DataContextType {
+  // Collection Centers
+  collectionCenters: CollectionCenter[];
+  addCollectionCenter: (center: Omit<CollectionCenter, 'id' | 'createdAt'>) => void;
+  updateCollectionCenter: (id: string, center: Partial<CollectionCenter>) => void;
+  deleteCollectionCenter: (id: string) => void;
+  
   // Patients
   patients: Patient[];
   addPatient: (patient: Omit<Patient, 'id' | 'createdAt' | 'visitCount' | 'totalBilled' | 'pendingDues'>) => void;
@@ -54,6 +60,8 @@ interface DataContextType {
   // Dashboard
   dashboard: Dashboard;
   refreshDashboard: () => void;
+  selectedCenterId?: string;
+  setSelectedCenterId: (centerId?: string) => void;
 
   // Notifications
   notifications: Notification[];
@@ -71,154 +79,234 @@ interface DataContextType {
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
-export const useData = () => {
-  const context = useContext(DataContext);
-  if (!context) {
-    throw new Error('useData must be used within a DataProvider');
+// Helper: recursively convert string fields that look like dates into Date objects
+function convertDatesFromStrings<T>(input: T): T {
+  // Arrays: process each element
+  if (Array.isArray(input)) {
+    return input.map(item => convertDatesFromStrings(item)) as unknown as T;
   }
-  return context;
-};
 
-interface DataProviderProps {
-  children: ReactNode;
+  // Objects: shallow copy and process keys
+  if (input && typeof input === 'object') {
+    const obj = input as Record<string, unknown>;
+    const out: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(obj)) {
+      if (typeof value === 'string') {
+        const lower = key.toLowerCase();
+        if (lower.includes('date') || lower.includes('at')) {
+          const d = new Date(value);
+          out[key] = isNaN(d.getTime()) ? value : d;
+          continue;
+        }
+      }
+      if (Array.isArray(value) || (value && typeof value === 'object')) {
+        out[key] = convertDatesFromStrings(value as unknown);
+      } else {
+        out[key] = value;
+      }
+    }
+    return out as unknown as T;
+  }
+
+  // Primitives: return as-is
+  return input;
 }
 
-export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
+// Move the hook inside the component to fix Fast Refresh
+const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  // Initialize sample data on first load
+  // (Removed) initializeSampleData();
+  
+  // Collection Centers
+  const [collectionCenters, setCollectionCenters] = useState<CollectionCenter[]>(() => {
+    const stored = localStorage.getItem('lab_collection_centers');
+    if (stored) return JSON.parse(stored);
+    return [];
+  });
+
+  // Selected collection center (used to filter dashboard metrics)
+  const [currentCenterId, setCurrentCenterId] = useState<string | undefined>(() => {
+    const fromStorage = localStorage.getItem('lab_selected_center_id');
+    if (fromStorage) return fromStorage || undefined;
+    const userStr = localStorage.getItem('lab_user');
+    try {
+      if (userStr) {
+        const u = JSON.parse(userStr);
+        return u?.collectionCenterId || undefined;
+      }
+    } catch {}
+    return undefined;
+  });
+
+  const setSelectedCenterId = (centerId?: string) => {
+    setCurrentCenterId(centerId);
+    if (centerId) localStorage.setItem('lab_selected_center_id', centerId);
+    else localStorage.removeItem('lab_selected_center_id');
+  };
+  
   const [patients, setPatients] = useState<Patient[]>(() => {
     const stored = localStorage.getItem('lab_patients');
-    if (stored) return JSON.parse(stored);
-    // Add a dummy patient if no patients exist
-    const dummyPatient = {
-      id: 'P0001',
-      patientId: 'P0001',
-      phcrNumber: 'PHCR# R-34889',
-      mrNumber: 'MR-0001',
-      name: 'Demo Patient',
-      age: 35,
-      gender: 'male',
-      contact: '0300-0000000',
-      email: 'demo@rifahlabs.com',
-      address: '123 Demo Street, City',
-      cnic: '35202-1234567-1',
-      bloodGroup: 'A+',
-      allergies: 'None',
-      medicalHistory: 'Healthy',
-      referredBy: 'Dr. Demo',
-      sampleType: 'Blood',
-      createdAt: new Date(),
-      createdBy: 'system',
-      visitCount: 1,
-      totalBilled: 0,
-      pendingDues: 0
-    };
-    localStorage.setItem('lab_patients', JSON.stringify([dummyPatient]));
-    return [dummyPatient];
-  });
-  const [doctors, setDoctors] = useState<Doctor[]>(() => {
-    const stored = localStorage.getItem('lab_doctors');
-    if (stored) return JSON.parse(stored);
-    // Import from consultants_camelot_all.csv if present
-    if (consultantsCsv) {
-      const results = Papa.parse(consultantsCsv, { header: true, skipEmptyLines: true });
-      const csvDoctors = (results.data as any[]).map((row, idx) => ({
-        id: `D${(idx + 1).toString().padStart(4, '0')}`,
-        name: row['Consultant Name']?.trim() || '',
-        contact: row['Contact No']?.trim() || '',
-        hospital: row['Hospital']?.trim() || '',
-        specialty: row['Hospital']?.trim() || '',
-        email: '',
-        commissionPercent: 0,
-        cnic: '',
-        address: row['Hospital']?.trim() || '',
-        isActive: true,
-        createdAt: new Date(),
-        totalReferrals: 0,
-        totalRevenue: 0,
-        username: row['Username']?.trim() || '',
-        password: row['Password']?.trim() || '',
-      })).filter(d => d.name);
-      localStorage.setItem('lab_doctors', JSON.stringify(csvDoctors));
-      return csvDoctors;
+    console.log('Raw stored patients from localStorage:', stored);
+    if (stored) {
+      try {
+        const parsedPatients = JSON.parse(stored);
+        console.log('Raw patients from localStorage:', parsedPatients);
+        console.log('Type of parsedPatients:', typeof parsedPatients);
+        console.log('Is Array?', Array.isArray(parsedPatients));
+        
+        // If the data is not an array, clear it and return empty array
+        if (!Array.isArray(parsedPatients)) {
+          console.warn('Patients data in localStorage is not an array, clearing corrupted data');
+          localStorage.removeItem('lab_patients');
+          return [];
+        }
+        
+        // Convert date strings back to Date objects
+        const convertedPatients = convertDatesFromStrings(parsedPatients as unknown);
+        console.log('Converted patients:', convertedPatients);
+        // Ensure we always return an array
+        return Array.isArray(convertedPatients) ? convertedPatients : [];
+      } catch (error) {
+        console.error('Error parsing patients from localStorage:', error);
+        // Clear corrupted data
+        localStorage.removeItem('lab_patients');
+        return [];
+      }
     }
     return [];
   });
+  const [doctors, setDoctors] = useState<Doctor[]>(() => {
+    const stored = localStorage.getItem('lab_doctors');
+    if (stored) {
+      try {
+        const parsedDoctors = JSON.parse(stored);
+        if (!Array.isArray(parsedDoctors)) {
+          localStorage.removeItem('lab_doctors');
+          return [];
+        }
+        const convertedDoctors = convertDatesFromStrings(parsedDoctors as unknown);
+        return Array.isArray(convertedDoctors) ? convertedDoctors : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
+
+  // Auto-load doctors from CSV if nothing in storage (no sample fallback)
+  useEffect(() => {
+    if (doctors.length > 0) return;
+    (async () => {
+      try {
+        const response = await fetch('/consultants_camelot_all.csv');
+        if (!response.ok) return;
+        const csvText = await response.text();
+        const results = Papa.parse(csvText, { header: true, skipEmptyLines: true });
+        const csvDoctors = (results.data as any[]).map((row, idx) => ({
+          id: `D${(idx + 1).toString().padStart(4, '0')}`,
+          name: (row['Consultant Name'] || '').trim(),
+          contact: row['Contact No'] && row['Contact No'].trim() !== '<NA>' ? row['Contact No'].trim() : '',
+          hospital: row['Hospital'] && row['Hospital'].trim() !== '<NA>' ? row['Hospital'].trim() : '',
+          specialty: 'General Medicine',
+          email: '',
+          commissionPercent: 0,
+          cnic: '',
+          address: row['Hospital'] && row['Hospital'].trim() !== '<NA>' ? row['Hospital'].trim() : '',
+          isActive: true,
+          createdAt: new Date(),
+          totalReferrals: 0,
+          totalRevenue: 0
+        })).filter(d => d.name);
+        if (csvDoctors.length > 0) {
+          setDoctors(csvDoctors);
+          localStorage.setItem('lab_doctors', JSON.stringify(csvDoctors));
+        }
+      } catch (_e) { /* optional CSV load failed; ignore */ }
+    })();
+  }, [doctors]);
+
   const [tests, setTests] = useState<Test[]>(() => {
     const stored = localStorage.getItem('lab_tests');
-    if (stored) return JSON.parse(stored);
-    // If no tests in localStorage, parse from CSV
-    const results = Papa.parse(testListCsv, { header: true, skipEmptyLines: true });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const csvTests = (results.data as any[]).map((row, idx) => ({
-      id: `T${(idx + 1).toString().padStart(4, '0')}`,
-      name: row['Test Name']?.trim() || '',
-      price: parseInt((row['Rates'] || '0').replace(/[^\d]/g, '')),
-      sampleRequired: row['Sample Required']?.trim() || '',
-      deliveryTime: row['Delivery Time']?.trim() || '',
-      createdAt: new Date(),
-      isActive: true
-    })).filter(t => t.name && t.price);
-    localStorage.setItem('lab_tests', JSON.stringify(csvTests));
-    return csvTests;
+    if (stored) {
+      try {
+        const parsedTests = JSON.parse(stored);
+        const convertedTests = convertDatesFromStrings(parsedTests as unknown);
+        return Array.isArray(convertedTests) ? convertedTests : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
   });
+
+  // Auto-load tests from CSV if nothing in storage (no sample fallback)
+  useEffect(() => {
+    if (tests.length > 0) return;
+    (async () => {
+      try {
+        const response = await fetch('/testlist.csv');
+        if (!response.ok) return;
+        const csvText = await response.text();
+        const results = Papa.parse(csvText, { header: true, skipEmptyLines: true });
+        const csvTests = (results.data as any[]).map((row, idx) => ({
+          id: `T${(idx + 1).toString().padStart(4, '0')}`,
+          name: (row['Test Name'] || '').trim(),
+          category: 'General',
+          price: parseInt(String(row['Rates'] || '0').replace(/[^\d]/g, '')) || 0,
+          sampleType: (row['Sample Required'] || 'Blood').trim(),
+          sampleRequired: (row['Sample Required'] || '').trim(),
+          deliveryTime: (row['Delivery Time'] || '').trim(),
+          createdAt: new Date(),
+          isActive: true
+        })).filter(t => t.name && t.price);
+        if (csvTests.length > 0) {
+          setTests(csvTests);
+          localStorage.setItem('lab_tests', JSON.stringify(csvTests));
+        }
+      } catch (_e) { /* ignore parse error */ }
+    })();
+  }, [tests]);
   const [invoices, setInvoices] = useState<Invoice[]>(() => {
     const stored = localStorage.getItem('lab_invoices');
-    if (stored) return JSON.parse(stored);
-    // Add a demo invoice for the dummy patient with CBC and Biopsy tests
-    const demoInvoice = {
-      id: 'INV0001',
-      invoiceNumber: 'INV0001',
-      patientId: 'P0001',
-      phcrNumber: 'PHCR# R-34889',
-      mrNumber: 'MR-0001',
-      doctorId: '',
-      tests: [
-        { testId: 'T0001', testName: 'Complete Blood Count (CBC)', price: 500, quantity: 1 },
-        { testId: 'T0002', testName: 'Biopsy For H/P(Large Specimen)', price: 4500, quantity: 1 }
-      ],
-      totalAmount: 5000,
-      discount: 0,
-      finalAmount: 5000,
-      status: 'due',
-      amountPaid: 0,
-      dueDate: new Date(),
-      paymentHistory: [],
-      createdAt: new Date(),
-      createdBy: 'system',
-      isLocked: false,
-      sampleType: 'Blood',
-      cnic: '35202-1234567-1'
-    };
-    localStorage.setItem('lab_invoices', JSON.stringify([demoInvoice]));
-    return [demoInvoice];
+    if (stored) {
+      try {
+        const parsedInvoices = JSON.parse(stored);
+        const convertedInvoices = convertDatesFromStrings(parsedInvoices);
+        return Array.isArray(convertedInvoices) ? convertedInvoices : [];
+      } catch (error) {
+        console.error('Error parsing invoices from localStorage:', error);
+        return [];
+      }
+    }
+    return [];
   });
   const [reports, setReports] = useState<Report[]>(() => {
     const stored = localStorage.getItem('lab_reports');
-    if (stored) return JSON.parse(stored);
-    // Add a dummy report for the dummy patient and demo invoice
-    const dummyReport = {
-      id: 'R0001',
-      invoiceId: 'INV0001',
-      patientId: 'P0001',
-      doctorId: '',
-      tests: [
-        { testId: 'T0001', testName: 'Complete Blood Count (CBC)', result: '', normalRange: '', isAbnormal: false, unit: '' },
-        { testId: 'T0002', testName: 'Biopsy For H/P(Large Specimen)', result: '', normalRange: '', isAbnormal: false, unit: '' }
-      ],
-      status: 'pending',
-      statusHistory: [{ status: 'pending', changedBy: 'system', changedAt: new Date() }],
-      comments: [],
-      attachments: [],
-      createdAt: new Date(),
-      createdBy: 'system',
-      interpretation: '',
-      criticalValues: false
-    };
-    localStorage.setItem('lab_reports', JSON.stringify([dummyReport]));
-    return [dummyReport];
+    if (stored) {
+      try {
+        const parsedReports = JSON.parse(stored);
+        const convertedReports = convertDatesFromStrings(parsedReports);
+        return Array.isArray(convertedReports) ? convertedReports : [];
+      } catch (error) {
+        console.error('Error parsing reports from localStorage:', error);
+        return [];
+      }
+    }
+    return [];
   });
   const [stock, setStock] = useState<StockItem[]>(() => {
     const stored = localStorage.getItem('lab_stock');
-    return stored ? JSON.parse(stored) : [];
+    if (stored) {
+      try {
+        const parsedStock = JSON.parse(stored);
+        const convertedStock = convertDatesFromStrings(parsedStock);
+        return Array.isArray(convertedStock) ? convertedStock : [];
+      } catch (error) {
+        console.error('Error parsing stock from localStorage:', error);
+        return [];
+      }
+    }
+    return [];
   });
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
@@ -230,13 +318,105 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     todayRevenue: 0,
     pendingReports: 0,
     lowStockItems: 0,
-    recentActivities: []
+    recentActivities: [],
+    collectionCenters: []
   });
+
+  // Calculate dashboard metrics whenever data changes
+  useEffect(() => {
+    // Ensure all data is arrays before calling DataCalculator
+    if (Array.isArray(patients) && Array.isArray(invoices) && Array.isArray(reports) && Array.isArray(stock) && Array.isArray(auditLogs) && Array.isArray(expenses)) {
+      const calculatedDashboard = DataCalculator.calculateDashboard(
+        patients,
+        invoices,
+        reports,
+        stock,
+        auditLogs,
+        expenses
+      );
+      setDashboard(calculatedDashboard);
+    } else {
+      console.warn('Some data is not yet loaded or is not an array:', {
+        patients: Array.isArray(patients),
+        invoices: Array.isArray(invoices),
+        reports: Array.isArray(reports),
+        stock: Array.isArray(stock),
+        auditLogs: Array.isArray(auditLogs),
+        expenses: Array.isArray(expenses)
+      });
+    }
+  }, [patients, invoices, reports, stock, auditLogs, expenses]);
+
+  // Collection Center Management
+  const addCollectionCenter = (center: Omit<CollectionCenter, 'id' | 'createdAt'>) => {
+    const newCenter: CollectionCenter = {
+      ...center,
+      id: generateId(),
+      createdAt: new Date()
+    };
+    setCollectionCenters(prev => {
+      const updated = [...prev, newCenter];
+      localStorage.setItem('lab_collection_centers', JSON.stringify(updated));
+      return updated;
+    });
+    addAuditLog({
+      userId: 'System',
+      action: 'CREATE',
+      module: 'COLLECTION_CENTERS',
+      details: `Created collection center: ${center.name}`
+    });
+    addNotification({
+      type: 'info',
+      category: 'system',
+      title: 'New Collection Center',
+      message: `Collection center ${center.name} was added.`,
+      isRead: false,
+      priority: 'medium'
+    });
+  };
+
+  const updateCollectionCenter = (id: string, center: Partial<CollectionCenter>) => {
+    setCollectionCenters(prev => {
+      const updated = prev.map(c => c.id === id ? { ...c, ...center } : c);
+      localStorage.setItem('lab_collection_centers', JSON.stringify(updated));
+      return updated;
+    });
+    addAuditLog({
+      userId: 'System',
+      action: 'UPDATE',
+      module: 'COLLECTION_CENTERS',
+      details: `Updated collection center: ${id}`
+    });
+  };
+
+  const deleteCollectionCenter = (id: string) => {
+    setCollectionCenters(prev => {
+      const updated = prev.filter(c => c.id !== id);
+      localStorage.setItem('lab_collection_centers', JSON.stringify(updated));
+      return updated;
+    });
+    addAuditLog({
+      userId: 'System',
+      action: 'DELETE',
+      module: 'COLLECTION_CENTERS',
+      details: `Deleted collection center: ${id}`
+    });
+  };
 
   // --- Rate List Management ---
   const [rateLists, setRateLists] = useState<RateList[]>(() => {
     const stored = localStorage.getItem('lab_rateLists');
-    return stored ? JSON.parse(stored) : [];
+    if (stored) {
+      try {
+        const parsedRateLists = JSON.parse(stored);
+        const convertedRateLists = convertDatesFromStrings(parsedRateLists);
+        return Array.isArray(convertedRateLists) ? convertedRateLists : [];
+      } catch (error) {
+        console.error('Error parsing rateLists from localStorage:', error);
+        return [];
+      }
+    }
+    return [];
   });
 
   const addRateList = (rateList: Omit<RateList, 'id' | 'createdAt'>) => {
@@ -354,17 +534,6 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       isRead: false,
       priority: 'medium'
     });
-    // Automatically create a placeholder report for the new patient
-    addReport({
-      invoiceId: '',
-      patientId: newPatient.id,
-      doctorId: '',
-      tests: [],
-      status: 'pending',
-      createdBy: patient.createdBy,
-      interpretation: '',
-      criticalValues: false
-    });
   };
 
   const updatePatient = (id: string, patient: Partial<Patient>) => {
@@ -412,7 +581,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     };
     setDoctors((prev: Doctor[]) => [...prev, newDoctor]);
     addAuditLog({
-      userId: doctor.createdBy,
+      userId: 'System',
       action: 'CREATE',
       module: 'DOCTORS',
       details: `Created doctor: ${doctor.name}`
@@ -507,6 +676,48 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       }
       return t;
     }));
+
+    // Cascade updates to invoices (update displayed test name only)
+    const updatedTestBase = tests.find(src => src.id === id);
+    const updatedTest: Test | undefined = updatedTestBase ? { ...updatedTestBase, ...test } as Test : undefined;
+    if (updatedTest) {
+      setInvoices((prev: Invoice[]) => prev.map((inv: Invoice) => ({
+        ...inv,
+        tests: inv.tests.map(line => line.testId === id ? { ...line, testName: updatedTest.name } : line)
+      })));
+
+      // Cascade updates to reports (update names, ranges, units, and parameter metadata)
+      setReports((prevReports: Report[]) => prevReports.map((r: Report) => {
+        const contains = r.tests.some(rt => rt.testId === id);
+        if (!contains) return r;
+        const parameterTemplates = updatedTest.parameterTemplates || [];
+        const updatedReportTests = r.tests.map(rt => {
+          if (rt.testId !== id) return rt;
+          // Update test meta
+          let updatedParams = rt.parameters ? [...rt.parameters] : [];
+          // Update existing params' normalRange/unit by name
+          updatedParams = updatedParams.map(p => {
+            const tmpl = parameterTemplates.find(pt => pt.name === p.name);
+            return tmpl ? { ...p, normalRange: tmpl.normalRange, unit: tmpl.unit } : p;
+          });
+          // Append any new params from template that don't exist yet
+          parameterTemplates.forEach(pt => {
+            if (!updatedParams.some(p => p.name === pt.name)) {
+              updatedParams.push({ name: pt.name, result: '', normalRange: pt.normalRange, unit: pt.unit, isAbnormal: false, isCritical: false });
+            }
+          });
+          return {
+            ...rt,
+            testName: updatedTest.name,
+            normalRange: updatedTest.referenceRange || rt.normalRange,
+            unit: updatedTest.unit || rt.unit,
+            parameters: updatedParams
+          };
+        });
+        addAuditLog({ userId: 'System', action: 'UPDATE', module: 'REPORTS', details: `Cascaded test update to reports for test ${updatedTest.name} (${id})` });
+        return { ...r, tests: updatedReportTests };
+      }));
+    }
   };
 
   const deleteTest = (id: string) => {
@@ -516,6 +727,33 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       action: 'DELETE',
       module: 'TESTS',
       details: `Deleted test with ID: ${id}`
+    });
+
+    // Remove test lines from invoices and recalc amounts
+    setInvoices((prev: Invoice[]) => prev.map((inv: Invoice) => {
+      const remaining = inv.tests.filter(t => t.testId !== id);
+      if (remaining.length === inv.tests.length) return inv;
+      const newTotal = remaining.reduce((sum, t) => sum + t.price * t.quantity, 0);
+      const newFinal = newTotal - (inv.discount || 0);
+      addAuditLog({ userId: 'System', action: 'UPDATE', module: 'INVOICES', details: `Removed deleted test from invoice #${inv.invoiceNumber}` });
+      return { ...inv, tests: remaining, totalAmount: newTotal, finalAmount: newFinal };
+    }));
+
+    // Remove test entries from reports
+    setReports((prevReports: Report[]) => prevReports.map((r: Report) => {
+      const remaining = r.tests.filter(t => t.testId !== id);
+      if (remaining.length === r.tests.length) return r;
+      addAuditLog({ userId: 'System', action: 'UPDATE', module: 'REPORTS', details: `Removed deleted test from report for invoice ${r.invoiceId}` });
+      return { ...r, tests: remaining };
+    }));
+
+    addNotification({
+      type: 'warning',
+      category: 'system',
+      title: 'Test Removed',
+      message: 'A test was deleted and related invoices/reports were updated.',
+      isRead: false,
+      priority: 'medium'
     });
   };
 
@@ -535,14 +773,26 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       invoiceId: newInvoice.id,
       patientId: newInvoice.patientId,
       doctorId: newInvoice.doctorId,
-      tests: newInvoice.tests.map(t => ({
+      tests: newInvoice.tests.map(t => {
+        const sourceTest = tests.find(src => src.id === t.testId);
+        const parameters = (sourceTest?.parameterTemplates || []).map(pt => ({
+          name: pt.name,
+          result: '',
+          normalRange: pt.normalRange,
+          unit: pt.unit,
+          isAbnormal: false,
+          isCritical: false,
+        }));
+        return {
         testId: t.testId,
         testName: t.testName,
         result: '',
-        normalRange: '',
+          normalRange: sourceTest?.referenceRange || '',
         isAbnormal: false,
-        unit: ''
-      })),
+          unit: sourceTest?.unit || '',
+          parameters,
+        };
+      }),
       status: 'pending',
       statusHistory: [
         { status: 'pending', changedBy: newInvoice.createdBy, changedAt: new Date() }
@@ -551,8 +801,9 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       attachments: [],
       createdAt: new Date(),
       createdBy: newInvoice.createdBy,
-      interpretation: '',
-      criticalValues: false
+      interpretation: sourceTestInterpretationTemplate(tests, newInvoice.tests),
+      criticalValues: false,
+      collectionCenterId: newInvoice.collectionCenterId
     };
     setInvoices(prev => {
       setReports(prevReports => [...prevReports, newReport]);
@@ -569,10 +820,22 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     refreshDashboard();
   };
 
+  function sourceTestInterpretationTemplate(allTests: Test[], invoiceTests: InvoiceTest[]): string {
+    const first = invoiceTests[0] && allTests.find(t => t.id === invoiceTests[0].testId);
+    if (first?.isNarrative && first.narrativeTemplate) return first.narrativeTemplate;
+    return '';
+  }
+
   const updateInvoice = (id: string, invoice: Partial<Invoice>) => {
     setInvoices((prev: Invoice[]) => prev.map((i: Invoice) => {
       if (i.id === id) {
-        const diff = getFieldDiff(i, invoice);
+        // If tests provided but totals not provided, recalc amounts
+        let merged: Invoice = { ...i, ...invoice } as Invoice;
+        if (invoice.tests && (invoice.totalAmount === undefined || invoice.finalAmount === undefined)) {
+          const totalAmount = invoice.tests.reduce((sum, t) => sum + (t.price * t.quantity), 0);
+          merged = { ...merged, totalAmount, finalAmount: totalAmount - (merged.discount || 0) };
+        }
+        const diff = getFieldDiff(i, merged);
         addAuditLog({
           userId: 'System',
           action: 'UPDATE',
@@ -587,10 +850,101 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
           isRead: false,
           priority: 'medium'
         });
-        return { ...i, ...invoice };
+        
+        // If tests were updated, also update the corresponding report
+        if (invoice.tests && JSON.stringify(invoice.tests) !== JSON.stringify(i.tests)) {
+          setReports((prevReports: Report[]) => prevReports.map((report: Report) => {
+            if (report.invoiceId === id) {
+              // Update report tests based on new invoice tests
+              const updatedReportTests = invoice.tests!.map(t => {
+                const sourceTest = tests.find(src => src.id === t.testId);
+                const existingTest = report.tests.find(rt => rt.testId === t.testId);
+                
+                // If test already exists in report, preserve its data
+                if (existingTest) {
+                  return existingTest;
+                }
+                
+                // If it's a new test, create it with default values
+                const parameters = (sourceTest?.parameterTemplates || []).map(pt => ({
+                  name: pt.name,
+                  result: '',
+                  normalRange: pt.normalRange,
+                  unit: pt.unit,
+                  isAbnormal: false,
+                  isCritical: false,
+                }));
+                
+                return {
+                  testId: t.testId,
+                  testName: t.testName,
+                  result: '',
+                  normalRange: sourceTest?.referenceRange || '',
+                  isAbnormal: false,
+                  unit: sourceTest?.unit || '',
+                  parameters,
+                };
+              });
+              
+              // Check if any tests were removed
+              const removedTests = report.tests.filter(rt => 
+                !invoice.tests!.some(it => it.testId === rt.testId)
+              );
+              
+              // Add status history entry for test list update
+              const updatedStatusHistory = [
+                ...report.statusHistory,
+                { 
+                  status: report.status, 
+                  changedBy: 'System', 
+                  changedAt: new Date() 
+                }
+              ];
+              
+              let auditMessage = `Updated report tests for invoice: ${id}. Tests changed from ${i.tests.length} to ${invoice.tests!.length}`;
+              if (removedTests.length > 0) {
+                auditMessage += `. Removed tests: ${removedTests.map(t => t.testName).join(', ')}`;
+              }
+              
+              addAuditLog({
+                userId: 'System',
+                action: 'UPDATE',
+                module: 'REPORTS',
+                details: auditMessage
+              });
+              
+              let notificationMessage = `Report for invoice #${i.invoiceNumber} has been updated with ${invoice.tests!.length} tests.`;
+              if (removedTests.length > 0) {
+                notificationMessage += ` ${removedTests.length} test(s) were removed.`;
+              }
+              
+              addNotification({
+                type: 'warning',
+                category: 'system',
+                title: 'Report Tests Updated',
+                message: notificationMessage,
+                isRead: false,
+                priority: 'medium'
+              });
+              
+              return {
+                ...report,
+                tests: updatedReportTests,
+                statusHistory: updatedStatusHistory,
+                // Reset status to pending if tests were added/removed
+                status: report.status === 'completed' || report.status === 'verified' ? 'pending' : report.status
+              };
+            }
+            return report;
+          }));
+        }
+        
+        return merged;
       }
       return i;
     }));
+    // Ensure dashboard updates after invoice mutation
+    refreshDashboard();
   };
 
   const recordPayment = (invoiceId: string, payment: PaymentRecord) => {
@@ -627,16 +981,33 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       isRead: false,
       priority: 'medium'
     });
+    // Ensure dashboard updates after payment
+    refreshDashboard();
   };
 
   const deleteInvoice = (id: string) => {
     setInvoices((prev: Invoice[]) => prev.filter((i: Invoice) => i.id !== id));
+    
+    // Also delete the corresponding report
+    setReports((prev: Report[]) => prev.filter((r: Report) => r.invoiceId !== id));
+    
     addAuditLog({
       userId: 'System',
       action: 'DELETE',
       module: 'INVOICES',
       details: `Deleted invoice with ID: ${id}`
     });
+    
+    addNotification({
+      type: 'warning',
+      category: 'system',
+      title: 'Invoice Deleted',
+      message: `Invoice and its corresponding report have been deleted.`,
+      isRead: false,
+      priority: 'high'
+    });
+    // Ensure dashboard updates after deletion
+    refreshDashboard();
   };
 
   // Report methods
@@ -817,18 +1188,30 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     const newLog: AuditLog = {
       ...log,
       id: generateId(),
-      timestamp: new Date()
+      timestamp: new Date(),
+      collectionCenterId: (typeof window !== 'undefined' && localStorage.getItem('lab_user'))
+        ? JSON.parse(localStorage.getItem('lab_user') as string).collectionCenterId
+        : undefined
     };
     setAuditLogs(prev => [...prev, newLog]);
   };
 
   // Dashboard
-  const refreshDashboard = () => {
-    const totalPatients = patients.length;
-    const todayPatients = patients.filter(p => new Date(p.createdAt).toDateString() === new Date().toDateString()).length;
-    const totalRevenue = invoices.reduce((sum, inv) => sum + (inv.finalAmount || 0), 0);
-    const todayRevenue = invoices.filter(inv => new Date(inv.createdAt).toDateString() === new Date().toDateString()).reduce((sum, inv) => sum + (inv.finalAmount || 0), 0);
-    const pendingReports = reports.filter(r => r.status === 'pending').length;
+  const refreshDashboard = useCallback(() => {
+    const filterByCenter = <T extends { collectionCenterId?: string }>(arr: T[]): T[] => {
+      if (!currentCenterId) return arr;
+      return arr.filter(x => x.collectionCenterId === currentCenterId);
+    };
+
+    const filteredPatients = filterByCenter<Patient>(patients);
+    const filteredInvoices = filterByCenter<Invoice>(invoices);
+    const filteredReports = filterByCenter<Report>(reports);
+
+    const totalPatients = filteredPatients.length;
+    const todayPatients = filteredPatients.filter(p => new Date(p.createdAt).toDateString() === new Date().toDateString()).length;
+    const totalRevenue = filteredInvoices.reduce((sum, inv) => sum + (inv.finalAmount || 0), 0);
+    const todayRevenue = filteredInvoices.filter(inv => new Date(inv.createdAt).toDateString() === new Date().toDateString()).reduce((sum, inv) => sum + (inv.finalAmount || 0), 0);
+    const pendingReports = filteredReports.filter(r => r.status === 'pending').length;
     const lowStockItems = stock.filter(s => s.currentStock < s.reorderLevel).length;
     const recentActivities: string[] = [];
 
@@ -856,6 +1239,51 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       recentActivities.push(`${recentStockItems.length} new stock items added.`);
     }
 
+    // Calculate collection center summaries
+    const collectionCentersSummary: CollectionCenterSummary[] = collectionCenters.map(center => {
+      const centerPatients = patients.filter(p => p.collectionCenterId === center.id);
+      const centerInvoices = invoices.filter(inv => inv.collectionCenterId === center.id);
+      const centerReports = reports.filter(r => r.collectionCenterId === center.id);
+      
+      const centerTotalPatients = centerPatients.length;
+      const centerTodayPatients = centerPatients.filter(p => 
+        new Date(p.createdAt).toDateString() === new Date().toDateString()
+      ).length;
+      const centerTotalRevenue = centerInvoices.reduce((sum, inv) => sum + (inv.finalAmount || 0), 0);
+      const centerTodayRevenue = centerInvoices.filter(inv => 
+        new Date(inv.createdAt).toDateString() === new Date().toDateString()
+      ).reduce((sum, inv) => sum + (inv.finalAmount || 0), 0);
+      const centerPendingReports = centerReports.filter(r => r.status === 'pending').length;
+      const centerCompletedReports = centerReports.filter(r => r.status === 'completed').length;
+      
+      // Calculate monthly and yearly revenue
+      const now = new Date();
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const yearStart = new Date(now.getFullYear(), 0, 1);
+      
+      const centerMonthlyRevenue = centerInvoices.filter(inv => 
+        new Date(inv.createdAt) >= monthStart
+      ).reduce((sum, inv) => sum + (inv.finalAmount || 0), 0);
+      
+      const centerYearlyRevenue = centerInvoices.filter(inv => 
+        new Date(inv.createdAt) >= yearStart
+      ).reduce((sum, inv) => sum + (inv.finalAmount || 0), 0);
+
+      return {
+        centerId: center.id,
+        centerName: center.name,
+        centerCode: center.code,
+        totalPatients: centerTotalPatients,
+        todayPatients: centerTodayPatients,
+        totalRevenue: centerTotalRevenue,
+        todayRevenue: centerTodayRevenue,
+        pendingReports: centerPendingReports,
+        completedReports: centerCompletedReports,
+        monthlyRevenue: centerMonthlyRevenue,
+        yearlyRevenue: centerYearlyRevenue
+      };
+    });
+
     // Expenses do not have createdAt, so skip recentExpenses
     
     setDashboard({
@@ -865,9 +1293,10 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       todayRevenue,
       pendingReports,
       lowStockItems,
-      recentActivities: auditLogs.slice(-5) // Use last 5 audit logs as activities
+      recentActivities: auditLogs.slice(-5), // Use last 5 audit logs as activities
+      collectionCenters: collectionCentersSummary
     });
-  };
+  }, [patients, invoices, reports, stock, auditLogs, collectionCenters, currentCenterId]);
 
   // Notifications
   const addNotification = (notification: Omit<Notification, 'id' | 'createdAt'>) => {
@@ -917,8 +1346,51 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Persist core datasets to localStorage for durability and multi-tab sync
+  useEffect(() => {
+    try { localStorage.setItem('lab_tests', JSON.stringify(tests)); } catch {}
+  }, [tests]);
+  useEffect(() => {
+    try { localStorage.setItem('lab_invoices', JSON.stringify(invoices)); } catch {}
+  }, [invoices]);
+  useEffect(() => {
+    try { localStorage.setItem('lab_reports', JSON.stringify(reports)); } catch {}
+  }, [reports]);
+
+  // Cross-tab realtime sync using storage events
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (!e.key) return;
+      try {
+        if (e.key === 'lab_tests' && e.newValue) {
+          const parsed = convertDatesFromStrings(JSON.parse(e.newValue));
+          if (Array.isArray(parsed)) setTests(parsed);
+        }
+        if (e.key === 'lab_invoices' && e.newValue) {
+          const parsed = convertDatesFromStrings(JSON.parse(e.newValue));
+          if (Array.isArray(parsed)) setInvoices(parsed);
+        }
+        if (e.key === 'lab_reports' && e.newValue) {
+          const parsed = convertDatesFromStrings(JSON.parse(e.newValue));
+          if (Array.isArray(parsed)) setReports(parsed);
+        }
+      } catch {}
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
+  // Auto-refresh dashboard when core datasets change
+  useEffect(() => {
+    refreshDashboard();
+  }, [patients, invoices, reports, stock, expenses, currentCenterId, refreshDashboard]);
+
   return (
     <DataContext.Provider value={{
+      collectionCenters,
+      addCollectionCenter,
+      updateCollectionCenter,
+      deleteCollectionCenter,
       patients,
       addPatient,
       updatePatient,
@@ -949,13 +1421,15 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       updateExpense,
       auditLogs,
       addAuditLog,
-      dashboard,
-      refreshDashboard,
       notifications,
       addNotification,
       markNotificationAsRead,
       markAllNotificationsAsRead,
       deleteNotification,
+      dashboard,
+      refreshDashboard,
+      selectedCenterId: currentCenterId,
+      setSelectedCenterId,
       rateLists,
       addRateList,
       updateRateList,
@@ -965,3 +1439,14 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     </DataContext.Provider>
   );
 };
+
+// Export the hook separately to fix Fast Refresh
+export const useData = () => {
+  const context = useContext(DataContext);
+  if (!context) {
+    throw new Error('useData must be used within a DataProvider');
+  }
+  return context;
+};
+
+export { DataProvider };

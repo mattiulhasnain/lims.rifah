@@ -1,0 +1,57 @@
+{
+  "users": {
+    "admin": {
+      "username": "admin",
+      "password": "Adm1n!2024#Secure",
+      "role": "admin"
+    },
+    "receptionist": {
+      "username": "receptionist",
+      "password": "Rec3pt!on2024$",
+      "role": "receptionist"
+    },
+    "student": {
+      "username": "student",
+      "password": "Stud3nt!2024@",
+      "role": "student"
+    }
+  },
+  "patients": [
+    {
+      "name": "John Doe",
+      "phone": "03001234567",
+      "address": "123 Test Street, Test City",
+      "age": "30",
+      "gender": "Male"
+    },
+    {
+      "name": "Jane Smith",
+      "phone": "03009876543",
+      "address": "456 Sample Road, Sample Town",
+      "age": "25",
+      "gender": "Female"
+    }
+  ],
+  "tests": [
+    {
+      "name": "Complete Blood Count",
+      "code": "CBC",
+      "price": "1500",
+      "category": "Hematology"
+    },
+    {
+      "name": "Blood Glucose",
+      "code": "BG",
+      "price": "800",
+      "category": "Biochemistry"
+    }
+  ],
+  "doctors": [
+    {
+      "name": "Dr. Ahmed Khan",
+      "specialization": "Cardiology",
+      "phone": "03001112222",
+      "email": "ahmed.khan@hospital.com"
+    }
+  ]
+} 

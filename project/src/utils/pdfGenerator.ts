@@ -119,6 +119,36 @@ export const createReportPDF = async (reportData: any) => {
                 </span>
               </td>
             </tr>
+            ${Array.isArray(test.parameters) && test.parameters.length > 0 ? `
+              <tr>
+                <td colspan="5" style="padding: 0;">
+                  <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                    <thead>
+                      <tr style="background-color: #e5e7eb;">
+                        <th style="border: 1px solid #d1d5db; padding: 8px; text-align: left;">Parameter</th>
+                        <th style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">Result</th>
+                        <th style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">Normal Range</th>
+                        <th style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">Unit</th>
+                        <th style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${test.parameters.map((p: any, i: number) => `
+                        <tr style="background-color: ${i % 2 === 0 ? '#ffffff' : '#f9fafb'};">
+                          <td style="border: 1px solid #d1d5db; padding: 8px;">${p.name}</td>
+                          <td style="border: 1px solid #d1d5db; padding: 8px; text-align: center; ${p.isAbnormal ? 'color: #dc2626; font-weight: bold;' : ''}">${p.result}</td>
+                          <td style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">${p.normalRange}</td>
+                          <td style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">${p.unit || '-'}</td>
+                          <td style="border: 1px solid #d1d5db; padding: 8px; text-align: center;">
+                            <span style="color: ${p.isAbnormal ? '#dc2626' : '#16a34a'}; font-weight: bold;">${p.isAbnormal ? 'ABNORMAL' : 'NORMAL'}</span>
+                          </td>
+                        </tr>
+                      `).join('')}
+                    </tbody>
+                  </table>
+                </td>
+              </tr>
+            ` : ''}
           `).join('')}
         </tbody>
       </table>
@@ -143,14 +173,12 @@ export const createReportPDF = async (reportData: any) => {
       <div style="margin-top: 30px; border-top: 2px solid #1e40af; padding-top: 20px;">
         <div style="display: flex; justify-content: space-between; align-items: end;">
           <div style="flex: 1;">
-            <p style="margin: 5px 0;"><strong>Verified By:</strong> ${reportData.verifiedBy || 'Dr. Abdul Malik'}</p>
+            <p style="margin: 5px 0;"><strong>Verified By:</strong> ${reportData.verifiedBy || 'Authorized Pathologist'}</p>
             <p style="margin: 5px 0;"><strong>Verification Date:</strong> ${reportData.verifiedAt ? new Date(reportData.verifiedAt).toLocaleDateString() : new Date().toLocaleDateString()}</p>
-            <p style="margin: 5px 0;"><strong>Qualification:</strong> M.B.B.S, DCPATH</p>
-            <p style="margin: 5px 0;"><strong>Designation:</strong> Clinical Pathologist</p>
           </div>
           <div style="text-align: center; flex: 1;">
             <div style="border-top: 1px solid #000; width: 200px; margin: 0 auto 5px auto;"></div>
-            <p style="margin: 0; font-weight: bold;">Authorized Signature</p>
+            <p style="margin: 0; font-weight: bold;">Authorized Verification</p>
           </div>
         </div>
       </div>
@@ -163,20 +191,12 @@ export const createReportPDF = async (reportData: any) => {
     <div style="text-align: center; margin-top: 10px; padding: 0 20mm; font-size: 12px; color: #6b7280;">
       <p style="margin: 5px 0;">Electronically verified report. No signatures required.</p>
       <p style="margin: 5px 0;">Generated on: ${new Date().toLocaleString()}</p>
-      <p style="margin: 5px 0; font-style: italic;">This is a computer-generated document and does not require a physical signature.</p>
     </div>
   `;
 
   document.body.appendChild(tempDiv);
-
-  try {
-    await generatePDF('pdf-report-temp', {
-      title: 'Laboratory Report',
-      filename: `Report_${reportData.patientName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`
-    });
-  } finally {
-    document.body.removeChild(tempDiv);
-  }
+  await generatePDF('pdf-report-temp', { title: 'Report', filename: `Report_${new Date().toISOString().split('T')[0]}.pdf` });
+  document.body.removeChild(tempDiv);
 };
 
 export const createInvoicePDF = async (invoiceData: any, qrCodeDataUrl: string) => {
@@ -395,8 +415,7 @@ export const createRateListPDF = async (rateList: any) => {
     styles: { fontSize: 10, cellPadding: 2 },
     headStyles: { fillColor: [30, 64, 175], textColor: 255 },
     didDrawPage: (data) => {
-      if (pdf.internal.getNumberOfPages() > 1 && data.pageNumber > 1) {
-        // No header image on subsequent pages
+        if (data.pageNumber > 1) {
         pdf.setFontSize(14);
         pdf.text('Rate List (continued)', 105, 15, { align: 'center' });
       }
@@ -420,7 +439,13 @@ export const exportReportsToExcel = (reports: any[], patients: any[], doctors: a
       'Verified At': report.verifiedAt ? new Date(report.verifiedAt).toLocaleString() : '',
       'Interpretation': report.interpretation || '',
       'Critical Values': report.criticalValues ? 'Yes' : 'No',
-      'Tests': report.tests.map((t: any) => `${t.testName}: ${t.result} (${t.normalRange})`).join('; ')
+      'Tests': report.tests.map((t: any) => {
+        const main = `${t.testName}: ${t.result} (${t.normalRange})`;
+        const params = Array.isArray(t.parameters) && t.parameters.length > 0
+          ? ' | ' + t.parameters.map((p: any) => `${p.name}: ${p.result} (${p.normalRange})`).join('; ')
+          : '';
+        return main + params;
+      }).join('; ')
     };
   });
   const worksheet = XLSX.utils.json_to_sheet(data);

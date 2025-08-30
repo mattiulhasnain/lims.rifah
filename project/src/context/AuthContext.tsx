@@ -22,20 +22,13 @@ interface CreateUserData {
   name: string;
   password: string;
   role: UserRole;
+  collectionCenterId?: string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
-
-// Demo users with strong, unique passwords
-const DEMO_USERS: User[] = [
+// Move DEMO_USERS outside the component to fix Fast Refresh
+export const DEMO_USERS: User[] = [
   {
     id: '1',
     username: 'admin',
@@ -77,8 +70,9 @@ const DEMO_USERS: User[] = [
       { module: 'doctors', actions: ['view'] as Action[] },
       { module: 'tests', actions: ['view'] as Action[] },
       { module: 'rates', actions: ['view'] as Action[] },
-      { module: 'invoices', actions: ['view', 'create'] as Action[] },
+      { module: 'invoices', actions: ['view', 'create', 'edit'] as Action[] },
       { module: 'reports', actions: ['view'] as Action[] },
+      { module: 'ai-feedback', actions: ['view'] as Action[] },
       { module: 'appointments', actions: ['view', 'create', 'edit'] as Action[] },
       { module: 'files', actions: ['view', 'create'] as Action[] },
       { module: 'notifications', actions: ['view'] as Action[] }
@@ -106,172 +100,157 @@ const DEMO_USERS: User[] = [
     email: 'tech@lab.com',
     role: 'technician',
     name: 'Lab Technician',
-    password: 'Tech!2024#Lab',
+    password: 'T3ch!2024#Lab',
     permissions: [
       { module: 'dashboard', actions: ['view'] as Action[] },
-      { module: 'patients', actions: ['view'] as Action[] },
-      { module: 'tests', actions: ['view'] as Action[] },
+      { module: 'tests', actions: ['view', 'create', 'edit'] as Action[] },
       { module: 'reports', actions: ['view', 'create', 'edit'] as Action[] },
-      { module: 'templates', actions: ['view', 'create', 'edit'] as Action[] },
       { module: 'stock', actions: ['view', 'edit'] as Action[] },
-      { module: 'quality', actions: ['view', 'create', 'edit'] as Action[] },
-      { module: 'files', actions: ['view', 'create'] as Action[] },
-      { module: 'notifications', actions: ['view'] as Action[] }
-    ],
-    isActive: true,
-    createdAt: new Date('2024-02-01')
-  },
-  {
-    id: '4',
-    username: 'pathologist',
-    email: 'pathologist@lab.com',
-    role: 'pathologist',
-    name: 'Dr. Pathologist',
-    password: 'Path0!2024#Lab',
-    permissions: [
-      { module: 'dashboard', actions: ['view'] as Action[] },
-      { module: 'patients', actions: ['view'] as Action[] },
-      { module: 'tests', actions: ['view', 'create', 'edit'] as Action[] },
-      { module: 'reports', actions: ['view', 'create', 'edit', 'verify'] as Action[] },
-      { module: 'templates', actions: ['view', 'create', 'edit', 'lock', 'unlock'] as Action[] },
-      { module: 'quality', actions: ['view', 'create', 'edit'] as Action[] },
-      { module: 'analytics', actions: ['view'] as Action[] },
-      { module: 'files', actions: ['view', 'create'] as Action[] },
-      { module: 'notifications', actions: ['view'] as Action[] }
-    ],
-    isActive: true,
-    createdAt: new Date('2024-01-20')
-  },
-  {
-    id: '5',
-    username: 'manager',
-    email: 'manager@lab.com',
-    role: 'manager',
-    name: 'Lab Manager',
-    password: 'Manag3r!2024$',
-    permissions: [
-      { module: 'dashboard', actions: ['view'] as Action[] },
-      { module: 'patients', actions: ['view', 'edit'] as Action[] },
-      { module: 'doctors', actions: ['view', 'create', 'edit'] as Action[] },
-      { module: 'tests', actions: ['view', 'create', 'edit'] as Action[] },
-      { module: 'rates', actions: ['view', 'create', 'edit'] as Action[] },
-      { module: 'invoices', actions: ['view', 'edit'] as Action[] },
-      { module: 'reports', actions: ['view'] as Action[] },
-      { module: 'stock', actions: ['view', 'create', 'edit'] as Action[] },
-      { module: 'expenses', actions: ['view', 'create', 'edit'] as Action[] },
-      { module: 'analytics', actions: ['view', 'export'] as Action[] },
-      { module: 'staff', actions: ['view', 'create', 'edit'] as Action[] },
-      { module: 'appointments', actions: ['view', 'create', 'edit'] as Action[] },
-      { module: 'files', actions: ['view', 'create', 'edit'] as Action[] },
-      { module: 'notifications', actions: ['view'] as Action[] },
-      { module: 'backup', actions: ['view', 'create'] as Action[] }
+      { module: 'quality', actions: ['view', 'create', 'edit'] as Action[] }
     ],
     isActive: true,
     createdAt: new Date('2024-01-10')
   },
   {
-    id: '6',
+    id: '4',
+    username: 'pathologist',
+    email: 'patho@lab.com',
+    role: 'pathologist',
+    name: 'Pathologist',
+    password: 'P4th0!2024#Lab',
+    permissions: [
+      { module: 'dashboard', actions: ['view'] as Action[] },
+      { module: 'tests', actions: ['view', 'create', 'edit'] as Action[] },
+      { module: 'reports', actions: ['view', 'create', 'edit', 'verify'] as Action[] },
+      { module: 'templates', actions: ['view', 'create', 'edit', 'lock', 'unlock'] as Action[] },
+      { module: 'patients', actions: ['view'] as Action[] },
+      { module: 'quality', actions: ['view', 'create', 'edit'] as Action[] }
+    ],
+    isActive: true,
+    createdAt: new Date('2024-01-05')
+  },
+  {
+    id: '5',
     username: 'accountant',
-    email: 'accountant@lab.com',
+    email: 'account@lab.com',
     role: 'accountant',
     name: 'Accountant',
-    password: 'Acc0unt@2024!Lab',
+    password: 'Acc0unt!2024#Lab',
     permissions: [
+      { module: 'dashboard', actions: ['view'] as Action[] },
       { module: 'invoices', actions: ['view', 'edit'] as Action[] },
       { module: 'expenses', actions: ['view', 'create', 'edit'] as Action[] },
       { module: 'analytics', actions: ['view'] as Action[] }
     ],
     isActive: true,
-    createdAt: new Date()
+    createdAt: new Date('2024-01-12')
   },
   {
-    id: '7',
+    id: '6',
     username: 'qc',
     email: 'qc@lab.com',
     role: 'qc',
     name: 'Quality Control',
-    password: 'QC!2024#Lab@',
+    password: 'QC!2024#Lab',
     permissions: [
+      { module: 'dashboard', actions: ['view'] as Action[] },
       { module: 'quality', actions: ['view', 'create', 'edit'] as Action[] },
       { module: 'tests', actions: ['view'] as Action[] }
     ],
     isActive: true,
-    createdAt: new Date()
+    createdAt: new Date('2024-01-08')
   },
   {
-    id: '8',
+    id: '7',
     username: 'filemanager',
-    email: 'filemanager@lab.com',
+    email: 'files@lab.com',
     role: 'filemanager',
     name: 'File Manager',
-    password: 'F1leM@nager2024!',
+    password: 'F1les!2024#Lab',
     permissions: [
+      { module: 'dashboard', actions: ['view'] as Action[] },
       { module: 'files', actions: ['view', 'create', 'edit'] as Action[] }
     ],
     isActive: true,
-    createdAt: new Date()
+    createdAt: new Date('2024-01-15')
   },
   {
-    id: '9',
+    id: '8',
     username: 'backup',
     email: 'backup@lab.com',
     role: 'backup',
-    name: 'Backup Operator',
-    password: 'B@ckup2024!Lab',
+    name: 'Backup Manager',
+    password: 'B4ckup!2024#Lab',
     permissions: [
+      { module: 'dashboard', actions: ['view'] as Action[] },
       { module: 'backup', actions: ['view', 'create'] as Action[] }
     ],
     isActive: true,
-    createdAt: new Date()
+    createdAt: new Date('2024-01-20')
   },
   {
-    id: '10',
+    id: '9',
     username: 'analytics',
     email: 'analytics@lab.com',
     role: 'analytics',
-    name: 'Analytics',
-    password: 'An@lytics2024!Lab',
+    name: 'Analytics User',
+    password: 'An4lyt!cs2024#Lab',
     permissions: [
+      { module: 'dashboard', actions: ['view'] as Action[] },
       { module: 'analytics', actions: ['view', 'export'] as Action[] }
     ],
     isActive: true,
-    createdAt: new Date()
+    createdAt: new Date('2024-01-25')
   },
   {
-    id: '11',
+    id: '10',
     username: 'staff',
     email: 'staff@lab.com',
     role: 'staff',
-    name: 'Staff',
-    password: 'St@ff2024!Lab',
+    name: 'Staff Manager',
+    password: 'St4ff!2024#Lab',
     permissions: [
+      { module: 'dashboard', actions: ['view'] as Action[] },
       { module: 'staff', actions: ['view', 'create', 'edit'] as Action[] }
+    ],
+    isActive: true,
+    createdAt: new Date('2024-01-30')
+  },
+  {
+    id: '11',
+    username: 'appointments',
+    email: 'appointments@lab.com',
+    role: 'appointments',
+    name: 'Appointment Manager',
+    password: 'App0!ntm3nts2024#Lab',
+    permissions: [
+      { module: 'dashboard', actions: ['view'] as Action[] },
+      { module: 'appointments', actions: ['view', 'create', 'edit'] as Action[] }
     ],
     isActive: true,
     createdAt: new Date()
   },
   {
     id: '12',
-    username: 'appointments',
-    email: 'appointments@lab.com',
-    role: 'appointments',
-    name: 'Appointments',
-    password: 'App0int!2024#Lab',
+    username: 'center_manager',
+    email: 'center@lab.com',
+    role: 'center_manager',
+    name: 'Collection Center Manager',
+    password: 'C3nt3r!2024#Lab',
     permissions: [
-      { module: 'appointments', actions: ['view', 'create', 'edit'] as Action[] }
+      { module: 'dashboard', actions: ['view'] as Action[] },
+      { module: 'collection-centers', actions: ['view', 'create', 'edit', 'delete'] as Action[] },
+      { module: 'patients', actions: ['view', 'create', 'edit'] as Action[] },
+      { module: 'invoices', actions: ['view', 'create'] as Action[] },
+      { module: 'reports', actions: ['view'] as Action[] }
     ],
     isActive: true,
     createdAt: new Date()
   }
 ];
 
-export { DEMO_USERS };
-
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  // Demo users with strong, unique passwords - moved inside component
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [users, setUsers] = useState<User[]>(DEMO_USERS);
@@ -387,7 +366,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       password: userData.password,
       permissions: getDefaultPermissions(userData.role),
       isActive: true,
-      createdAt: new Date()
+      createdAt: new Date(),
+      collectionCenterId: userData.collectionCenterId
     };
     const updatedUsers = [...users, newUser];
     setUsers(updatedUsers);
@@ -477,6 +457,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           { module: 'patients', actions: ['view', 'create', 'edit'] as Action[] },
           { module: 'invoices', actions: ['view', 'create'] as Action[] },
           { module: 'reports', actions: ['view'] as Action[] },
+          { module: 'ai-feedback', actions: ['view'] as Action[] },
           { module: 'appointments', actions: ['view', 'create', 'edit'] as Action[] }
         ];
       case 'student':
@@ -487,6 +468,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       case 'technician':
         return [
           { module: 'reports', actions: ['view', 'create', 'edit'] as Action[] },
+          { module: 'ai-feedback', actions: ['view'] as Action[] },
           { module: 'tests', actions: ['view'] as Action[] },
           { module: 'stock', actions: ['view', 'edit'] as Action[] },
           { module: 'quality', actions: ['view', 'create', 'edit'] as Action[] }
@@ -494,6 +476,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       case 'pathologist':
         return [
           { module: 'reports', actions: ['view', 'create', 'edit', 'verify'] as Action[] },
+          { module: 'ai-feedback', actions: ['view'] as Action[] },
           { module: 'templates', actions: ['view', 'create', 'edit', 'lock', 'unlock'] as Action[] },
           { module: 'patients', actions: ['view'] as Action[] },
           { module: 'tests', actions: ['view', 'create', 'edit'] as Action[] }
@@ -529,6 +512,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return [
           { module: 'appointments', actions: ['view', 'create', 'edit'] as Action[] }
         ];
+      case 'center_manager':
+        return [
+          { module: 'collection-centers', actions: ['view', 'create', 'edit', 'delete'] as Action[] },
+          { module: 'patients', actions: ['view', 'create', 'edit'] as Action[] },
+          { module: 'invoices', actions: ['view', 'create'] as Action[] },
+          { module: 'reports', actions: ['view'] as Action[] },
+          { module: 'dashboard', actions: ['view'] as Action[] }
+        ];
       default:
         return [{ module: 'dashboard', actions: ['view'] as Action[] }];
     }
@@ -558,3 +549,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+
+// Export the hook separately to fix Fast Refresh
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
+
+export { AuthProvider };

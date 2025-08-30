@@ -2,25 +2,39 @@ import React, { useState, useEffect } from 'react';
 import { useData } from '../../context/DataContext';
 import { useAuth } from '../../context/AuthContext';
 import { 
-  Search, Download, Calendar, User,
+  Search, Download, User,
   Activity, Shield, Eye, AlertTriangle, CheckCircle,
-  Clock, Zap, Target, TrendingUp, X
+  Zap, Target, X
 } from 'lucide-react';
 import { AuditLog, Notification } from '../../types';
 
 const AuditLogs: React.FC = () => {
-  const { auditLogs, notifications } = useData();
-  const { hasPermission } = useAuth();
+  const { auditLogs, notifications, collectionCenters, invoices, reports } = useData();
+  const { hasPermission, user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [actionFilter, setActionFilter] = useState('all');
   const [moduleFilter, setModuleFilter] = useState('all');
+  const [centerFilter, setCenterFilter] = useState<string>('all');
   const [dateRange, setDateRange] = useState('7');
-  const [selectedLog, setSelectedLog] = useState<AuditLog | Notification | null>(null);
+  const [selectedLog, setSelectedLog] = useState<MergedAuditItem | null>(null);
   const [showType, setShowType] = useState<'all' | 'logs' | 'notifications'>('all');
   const [showCriticalBanner, setShowCriticalBanner] = useState(true);
+  const [dailyDate, setDailyDate] = useState<string>(() => new Date().toISOString().slice(0,10));
+  const [dailyRows, setDailyRows] = useState<Array<{
+    centerId: string;
+    centerName: string;
+    invoices: number;
+    revenue: number;
+    payments: number;
+    reportsCreated: number;
+    verifications: number;
+    auditCount: number;
+    criticalCount: number;
+  }>>([]);
 
   // Merge audit logs and notifications for unified view
-  type MergedAuditItem = (AuditLog & { _type: 'log'; timestamp: Date }) | (Notification & { _type: 'notification'; timestamp: Date });
+  type LogItemExtended = AuditLog & { _type: 'log'; timestamp: Date; title: string; category: string };
+  type MergedAuditItem = LogItemExtended | (Notification & { _type: 'notification'; timestamp: Date });
 
   const mergedData = ([
     ...auditLogs.map(log => ({
@@ -31,7 +45,7 @@ const AuditLogs: React.FC = () => {
       message: log.details,
       category: log.module,
       type: 'info',
-    })),
+    } as LogItemExtended)),
     ...notifications.map(n => ({
       ...n,
       _type: 'notification' as const,
@@ -45,15 +59,61 @@ const AuditLogs: React.FC = () => {
     }))
   ] as MergedAuditItem[]).sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
 
+  const isSameDay = (d: Date, iso: string) => {
+    const target = new Date(iso);
+    return d.getFullYear() === target.getFullYear() && d.getMonth() === target.getMonth() && d.getDate() === target.getDate();
+  };
+
+  const generateDailyReceptionAudit = () => {
+    const rows = collectionCenters.map(cc => {
+      const inv = invoices.filter(i => i.collectionCenterId === cc.id && isSameDay(new Date(i.createdAt), dailyDate));
+      const revenue = inv.reduce((s, i) => s + (i.finalAmount || 0), 0);
+      const payments = invoices
+        .filter(i => i.collectionCenterId === cc.id)
+        .flatMap(i => i.paymentHistory || [])
+        .filter(p => isSameDay(new Date(p.date), dailyDate))
+        .reduce((s, p) => s + p.amount, 0);
+      const reps = reports.filter(r => r.collectionCenterId === cc.id && isSameDay(new Date(r.createdAt), dailyDate));
+      const verifs = reports.filter(r => r.collectionCenterId === cc.id && (r.statusHistory || []).some(h => h.status === 'verified' && isSameDay(new Date(h.changedAt), dailyDate))).length;
+      const logs = auditLogs.filter(l => l.collectionCenterId === cc.id && isSameDay(new Date(l.timestamp), dailyDate));
+      const critical = logs.filter(l => ['DELETE','VERIFY','LOCK','UNLOCK'].includes(l.action)).length;
+      return {
+        centerId: cc.id,
+        centerName: cc.name,
+        invoices: inv.length,
+        revenue,
+        payments,
+        reportsCreated: reps.length,
+        verifications: verifs,
+        auditCount: logs.length,
+        criticalCount: critical,
+      };
+    });
+    setDailyRows(rows);
+  };
+
+  const exportDailyCSV = () => {
+    const header = ['Center','Invoices','Revenue','Payments','Reports Created','Verifications','Audit Logs','Critical Actions'];
+    const rows = dailyRows.map(r => [r.centerName, r.invoices, r.revenue, r.payments, r.reportsCreated, r.verifications, r.auditCount, r.criticalCount]);
+    const csv = [header, ...rows].map(row => row.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `daily-reception-audit-${dailyDate}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   // Type guards
-  function isAuditLog(item: MergedAuditItem): item is AuditLog & { _type: 'log'; timestamp: Date } {
+  function isAuditLog(item: MergedAuditItem): item is LogItemExtended {
     return item._type === 'log';
   }
   function isNotification(item: MergedAuditItem): item is Notification & { _type: 'notification'; timestamp: Date } {
     return item._type === 'notification';
   }
 
-  const filteredMerged = mergedData.filter(item => {
+  const filteredMerged = mergedData.filter((item: MergedAuditItem) => {
     if (showType === 'logs' && item._type !== 'log') return false;
     if (showType === 'notifications' && item._type !== 'notification') return false;
     const matchesSearch = (
@@ -62,25 +122,33 @@ const AuditLogs: React.FC = () => {
     );
     const matchesAction = actionFilter === 'all' || (isAuditLog(item) ? item.action === actionFilter : false);
     const matchesModule = moduleFilter === 'all' || (isAuditLog(item) ? item.module === moduleFilter : false);
+    const matchesCenter = centerFilter === 'all' || (isAuditLog(item) ? (item.collectionCenterId === centerFilter) : true);
     // Date range filter
     const daysAgo = parseInt(dateRange);
     const cutoffDate = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
     const matchesDate = item.timestamp >= cutoffDate;
-    return matchesSearch && matchesAction && matchesModule && matchesDate;
+    return matchesSearch && matchesAction && matchesModule && matchesCenter && matchesDate;
   });
 
   // Get critical actions and verification activities
-  const criticalActions = mergedData.filter(item => 
-    isAuditLog(item) && ['DELETE', 'VERIFY', 'LOCK', 'UNLOCK'].includes(item.action)
-  );
-  const verificationActivities = mergedData.filter(item => 
-    (isAuditLog(item) && item.action === 'VERIFY') || 
-    (isNotification(item) && item.category === 'report' && item.message.includes('verification'))
-  );
+  const criticalActions = mergedData.filter(item => {
+    if (!isAuditLog(item)) return false;
+    return ['DELETE', 'VERIFY', 'LOCK', 'UNLOCK'].includes(item.action);
+  });
+  const verificationActivities = mergedData.filter(item => {
+    if (isAuditLog(item)) return item.action === 'VERIFY';
+    if (isNotification(item)) return item.category === 'report' && (item.message || '').includes('verification');
+    return false;
+  });
   const recentCriticalActions = criticalActions.filter(item => {
     const hoursAgo = (Date.now() - item.timestamp.getTime()) / (1000 * 60 * 60);
     return hoursAgo < 24; // Last 24 hours
   });
+
+  // Calculate audit analytics
+  useEffect(() => {
+    // This block was removed as per the edit hint
+  }, [mergedData, criticalActions]);
 
   // Real-time alerts for critical actions
   useEffect(() => {
@@ -239,6 +307,8 @@ const AuditLogs: React.FC = () => {
         </div>
       )}
 
+      {/* Removed legacy analytics dashboard to simplify and avoid unused state */}
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Audit Logs</h1>
@@ -309,7 +379,7 @@ const AuditLogs: React.FC = () => {
             <div>
               <p className="text-sm font-medium text-gray-600">Active Users</p>
               <p className="text-2xl font-bold text-gray-900">
-                {new Set(mergedData.map(log => log.userId)).size}
+                {new Set(mergedData.filter(isAuditLog).map(log => log.userId)).size}
               </p>
             </div>
             <div className="p-3 bg-green-100 rounded-lg">
@@ -333,6 +403,12 @@ const AuditLogs: React.FC = () => {
             />
           </div>
           
+          <select value={centerFilter} onChange={e => setCenterFilter(e.target.value)} className="px-3 py-2 border rounded-lg">
+            <option value="all">All Centers</option>
+            {collectionCenters.map(c => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
           <select
             value={actionFilter}
             onChange={(e) => setActionFilter(e.target.value)}
@@ -500,7 +576,7 @@ const AuditLogs: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Timestamp</p>
-                  <p className="font-medium">{selectedLog.timestamp ? selectedLog.timestamp.toLocaleString() : ''}</p>
+                  <p className="font-medium">{selectedLog ? selectedLog.timestamp.toLocaleString() : ''}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">IP Address</p>
@@ -523,6 +599,57 @@ const AuditLogs: React.FC = () => {
               )}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Admin-only: Daily Reception Audit */}
+      {user?.role === 'admin' && (
+        <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Daily Reception Audit</h3>
+              <p className="text-sm text-gray-600">Generate per-center activity and money summary for a specific day</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <input type="date" value={dailyDate} onChange={e => setDailyDate(e.target.value)} className="px-3 py-2 border rounded-lg" />
+              <button onClick={generateDailyReceptionAudit} className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Generate</button>
+              {dailyRows.length > 0 && (
+                <button onClick={exportDailyCSV} className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">Export CSV</button>
+              )}
+            </div>
+          </div>
+          {dailyRows.length > 0 && (
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-3 py-2 text-left">Center</th>
+                    <th className="px-3 py-2 text-right">Invoices</th>
+                    <th className="px-3 py-2 text-right">Revenue</th>
+                    <th className="px-3 py-2 text-right">Payments</th>
+                    <th className="px-3 py-2 text-right">Reports</th>
+                    <th className="px-3 py-2 text-right">Verifications</th>
+                    <th className="px-3 py-2 text-right">Audit Logs</th>
+                    <th className="px-3 py-2 text-right">Critical</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dailyRows.map(r => (
+                    <tr key={r.centerId} className="border-t">
+                      <td className="px-3 py-2">{r.centerName}</td>
+                      <td className="px-3 py-2 text-right">{r.invoices}</td>
+                      <td className="px-3 py-2 text-right">{r.revenue.toLocaleString()}</td>
+                      <td className="px-3 py-2 text-right">{r.payments.toLocaleString()}</td>
+                      <td className="px-3 py-2 text-right">{r.reportsCreated}</td>
+                      <td className="px-3 py-2 text-right">{r.verifications}</td>
+                      <td className="px-3 py-2 text-right">{r.auditCount}</td>
+                      <td className="px-3 py-2 text-right">{r.criticalCount}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
     </div>

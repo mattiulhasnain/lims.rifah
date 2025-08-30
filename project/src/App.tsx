@@ -34,6 +34,8 @@ import KnowledgeHub from './components/KnowledgeHub/KnowledgeHub';
 import DiagnosticKnowledgeHub from './components/KnowledgeHub/DiagnosticKnowledgeHub';
 import AboutLIMS from './components/About/AboutLIMS';
 import HelpSupport from './components/Help/HelpSupport';
+import CollectionCenterManagement from './components/CollectionCenter/CollectionCenterManagement';
+import AIFeedback from './components/AI/AIFeedback';
 
 const AppContent: React.FC = () => {
   const { user, logout } = useAuth();
@@ -126,6 +128,8 @@ const AppContent: React.FC = () => {
         return <ReportManagement />;
       case 'report-verification':
         return <ReportVerification />;
+      case 'ai-feedback':
+        return <AIFeedback />;
       case 'analytics':
         return <Analytics />;
       case 'quality-control':
@@ -154,6 +158,8 @@ const AppContent: React.FC = () => {
         return <Settings />;
       case 'about':
         return <AboutLIMS />;
+      case 'collection-centers':
+        return <CollectionCenterManagement />;
       case 'help':
         return <HelpSupport />;
       case 'feedback':

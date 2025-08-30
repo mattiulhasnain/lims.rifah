@@ -29,7 +29,9 @@ import {
   DollarSign,
   FileCode,
   Activity,
-  ClipboardList
+  ClipboardList,
+  Building2,
+  Sparkles
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useSidebar } from '../../context/SidebarContext';
@@ -44,6 +46,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
   const { isCollapsed, toggleSidebar } = useSidebar();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [scrollPosition, setScrollPosition] = useState(0);
+  const enableAI = (import.meta as any).env?.VITE_ENABLE_AI === 'true';
 
   useEffect(() => {
     const updateScrollPosition = () => {
@@ -90,6 +93,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home, permission: 'dashboard' },
     { id: 'patients', label: 'Patient Management', icon: Users, permission: 'patients' },
+    { id: 'collection-centers', label: 'Collection Centers', icon: Building2, permission: 'collection-centers' },
     { id: 'tests', label: 'Test Management', icon: FileText, permission: 'tests' },
     { id: 'test-reporting', label: 'Test Reporting', icon: FileCheck, permission: 'test-reporting' },
     { id: 'appointments', label: 'Appointments', icon: Calendar, permission: 'appointments' },
@@ -98,6 +102,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
     { id: 'expenses', label: 'Expense Management', icon: DollarSign, permission: 'expenses' },
     { id: 'reports', label: 'Reports', icon: FileSpreadsheet, permission: 'reports' },
     { id: 'report-verification', label: 'Report Verification', icon: ClipboardList, permission: 'report-verification' },
+    { id: 'ai-feedback', label: 'AI Feedback', icon: Sparkles, permission: 'ai-feedback' },
     { id: 'analytics', label: 'Analytics', icon: BarChart3, permission: 'analytics' },
     { id: 'quality-control', label: 'Quality Control', icon: Shield, permission: 'quality-control' },
     { id: 'stock', label: 'Stock Management', icon: Package, permission: 'stock' },
@@ -116,9 +121,9 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
     { id: 'feedback', label: 'Feedback', icon: MessageSquare, permission: 'feedback' }
   ];
 
-  const visibleItems = menuItems.filter(item => 
-    hasPermission(item.permission, 'view') || user?.role === 'admin'
-  );
+  const visibleItems = menuItems
+    .filter(item => hasPermission(item.permission, 'view') || user?.role === 'admin')
+    .filter(item => item.id !== 'ai-feedback' || enableAI);
 
   return (
     <div className={`bg-white dark:bg-gray-900 shadow-lg h-full border-r border-gray-200 dark:border-gray-800 flex flex-col transition-all duration-300 ease-in-out ${isCollapsed ? 'w-16' : 'w-64'}`}>

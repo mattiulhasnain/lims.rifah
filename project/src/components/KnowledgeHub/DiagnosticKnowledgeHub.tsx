@@ -1786,7 +1786,7 @@ const DiagnosticKnowledgeHub: React.FC = () => {
     },
 
     {
-      id: 'ag-ratio',
+      id: 'ag-ratio-basic',
       testName: 'Albumin/Globulin Ratio (A/G Ratio)',
       category: 'biochemistry',
       subcategory: 'protein',
@@ -1814,7 +1814,7 @@ const DiagnosticKnowledgeHub: React.FC = () => {
     },
 
     {
-      id: 'alkaline-phosphatase',
+      id: 'alkaline-phosphatase-basic',
       testName: 'Alkaline Phosphatase (ALP)',
       category: 'biochemistry',
       subcategory: 'liver',
@@ -2489,7 +2489,7 @@ const DiagnosticKnowledgeHub: React.FC = () => {
     },
 
     {
-      id: 'aldosterone',
+      id: 'aldosterone-basic',
       testName: 'Aldosterone',
       category: 'hormones',
       subcategory: 'adrenal',
@@ -8845,7 +8845,7 @@ const DiagnosticKnowledgeHub: React.FC = () => {
     },
 
     {
-      id: 'triglycerides',
+      id: 'triglycerides-advanced',
       testName: 'Triglycerides (TG)',
       category: 'biochemistry',
       subcategory: 'lipid-metabolism',
@@ -9407,7 +9407,7 @@ const DiagnosticKnowledgeHub: React.FC = () => {
     },
 
     {
-      id: 'ag-ratio',
+      id: 'ag-ratio-advanced',
       testName: 'A/G Ratio (Albumin/Globulin Ratio)',
       category: 'biochemistry',
       subcategory: 'protein-analysis',
@@ -9857,7 +9857,7 @@ const DiagnosticKnowledgeHub: React.FC = () => {
 
     // LIMS Test List - Chunk 5 (Tests 41-50)
     {
-      id: 'afb-culture-sputum',
+      id: 'afb-culture-sputum-basic',
       testName: 'AFB Culture Report (Sputum)',
       category: 'microbiology',
       subcategory: 'mycobacterial-culture',
@@ -9997,7 +9997,7 @@ const DiagnosticKnowledgeHub: React.FC = () => {
     },
 
     {
-      id: 'aldosterone',
+      id: 'aldosterone-advanced',
       testName: 'Aldosterone',
       category: 'hormones',
       subcategory: 'adrenal-function',
@@ -10052,8 +10052,10 @@ const DiagnosticKnowledgeHub: React.FC = () => {
       turnaroundTime: '96 hours'
     },
 
+
+
     {
-      id: 'alkaline-phosphatase',
+      id: 'alkaline-phosphatase-advanced',
       testName: 'Alkaline Phosphatase',
       category: 'biochemistry',
       subcategory: 'enzyme-analysis',
@@ -10138,7 +10140,7 @@ const DiagnosticKnowledgeHub: React.FC = () => {
 
     // LIMS Test List - Chunk 5 (Tests 41-50)
     {
-      id: 'afb-culture-sputum',
+      id: 'afb-culture-sputum-advanced',
       testName: 'AFB Culture Report (Sputum)',
       category: 'microbiology',
       subcategory: 'mycobacterial-culture',
@@ -10278,7 +10280,7 @@ const DiagnosticKnowledgeHub: React.FC = () => {
     },
 
     {
-      id: 'aldosterone',
+      id: 'aldosterone-comprehensive',
       testName: 'Aldosterone',
       category: 'hormones',
       subcategory: 'adrenal-function',
@@ -10334,7 +10336,7 @@ const DiagnosticKnowledgeHub: React.FC = () => {
     },
 
     {
-      id: 'alkaline-phosphatase',
+      id: 'alkaline-phosphatase-comprehensive',
       testName: 'Alkaline Phosphatase',
       category: 'biochemistry',
       subcategory: 'enzyme-analysis',

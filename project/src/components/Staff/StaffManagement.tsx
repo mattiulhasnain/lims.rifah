@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useData } from '../../context/DataContext';
 import { 
   Plus, Search, Edit, Trash2, Eye,
   Users, Shield, Calendar, Mail
@@ -8,6 +9,7 @@ import { User, UserRole } from '../../types';
 
 const StaffManagement: React.FC = () => {
   const { users, createUser, updateUser, deleteUser, hasPermission } = useAuth();
+  const { collectionCenters } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [showAddForm, setShowAddForm] = useState(false);
@@ -25,7 +27,8 @@ const StaffManagement: React.FC = () => {
     cnic: '',
     joiningDate: new Date().toISOString().split('T')[0],
     salary: '',
-    password: ''
+    password: '',
+    collectionCenterId: ''
   });
 
   // Remove the hardcoded staffMembers state
@@ -80,7 +83,8 @@ const StaffManagement: React.FC = () => {
       cnic: '',
       joiningDate: new Date().toISOString().split('T')[0],
       salary: '',
-      password: ''
+      password: '',
+      collectionCenterId: ''
     });
   };
 
@@ -99,7 +103,8 @@ const StaffManagement: React.FC = () => {
       cnic: extra.cnic || '',
       joiningDate: staff.createdAt ? new Date(staff.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       salary: extra.salary || '',
-      password: ''
+      password: '',
+      collectionCenterId: staff.collectionCenterId || ''
     });
     setShowAddForm(true);
   };
@@ -123,7 +128,9 @@ const StaffManagement: React.FC = () => {
       backup: 'bg-teal-100 text-teal-800',
       analytics: 'bg-fuchsia-100 text-fuchsia-800',
       staff: 'bg-lime-100 text-lime-800',
-      appointments: 'bg-amber-100 text-amber-800'
+      appointments: 'bg-amber-100 text-amber-800',
+      lab_helper: 'bg-slate-100 text-slate-800',
+      center_manager: 'bg-emerald-100 text-emerald-800'
     };
     return colors[role] || 'bg-gray-100 text-gray-800';
   };
@@ -237,6 +244,22 @@ const StaffManagement: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Collection Center *
+                  </label>
+                  <select
+                    required
+                    value={formData.collectionCenterId}
+                    onChange={(e) => setFormData({...formData, collectionCenterId: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select Center</option>
+                    {collectionCenters.map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Phone
                   </label>
                   <input
@@ -322,7 +345,8 @@ const StaffManagement: React.FC = () => {
                       cnic: '',
                       joiningDate: new Date().toISOString().split('T')[0],
                       salary: '',
-                      password: ''
+                      password: '',
+                      collectionCenterId: ''
                     });
                   }}
                   className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"

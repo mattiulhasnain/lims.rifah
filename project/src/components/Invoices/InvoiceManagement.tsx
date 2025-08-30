@@ -8,7 +8,8 @@ import {
 } from 'lucide-react';
 import { Invoice, InvoiceTest, PaymentRecord } from '../../types';
 import { createInvoicePDF, createReportPDF, exportReportsToExcel } from '../../utils/pdfGenerator';
-import * as QRCode from 'qrcode';
+import QRCode from 'qrcode';
+import Select from 'react-select';
 
 const InvoiceManagement: React.FC = () => {
   const { invoices, patients, doctors, tests, addInvoice, updateInvoice, deleteInvoice, recordPayment, addPatient } = useData();
@@ -19,15 +20,12 @@ const InvoiceManagement: React.FC = () => {
   const [viewingInvoice, setViewingInvoice] = useState<Invoice | null>(null);
   const [formData, setFormData] = useState({
     patientId: '',
-    phcrNumber: '',
-    mrNumber: '',
     doctorId: '',
     tests: [] as InvoiceTest[],
     discount: 0,
     notes: '',
     paymentMethod: 'cash',
     amountPaid: 0,
-    sampleType: '',
     cnic: ''
   });
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -41,6 +39,7 @@ const InvoiceManagement: React.FC = () => {
   const patientModalRef = useRef<HTMLDivElement>(null);
   const [showQR, setShowQR] = useState(false);
   const [qrInvoice, setQRInvoice] = useState<Invoice | null>(null);
+  const [doctorSearchTerm, setDoctorSearchTerm] = useState('');
 
   // Add useEffect for focus trap and Escape key
   useEffect(() => {
@@ -56,21 +55,95 @@ const InvoiceManagement: React.FC = () => {
   }, [showPatientModal]);
 
   const filteredInvoices = invoices.filter(invoice => {
+    if (!searchTerm.trim()) return true;
+    
     const patient = patients.find(p => p.id === invoice.patientId);
     const doctor = doctors.find(d => d.id === invoice.doctorId);
-    return (
-      invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      patient?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doctor?.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const searchLower = searchTerm.toLowerCase();
+    
+    // Search in invoice number
+    if (invoice.invoiceNumber.toLowerCase().includes(searchLower)) return true;
+    
+    // Search in patient information
+    if (patient) {
+      if (patient.name.toLowerCase().includes(searchLower)) return true;
+      if (patient.patientId.toLowerCase().includes(searchLower)) return true;
+      if (patient.contact.toLowerCase().includes(searchLower)) return true;
+      if (patient.cnic?.toLowerCase().includes(searchLower)) return true;
+      if (patient.address.toLowerCase().includes(searchLower)) return true;
+    }
+    
+    // Search in doctor information
+    if (doctor) {
+      if (doctor.name.toLowerCase().includes(searchLower)) return true;
+      if (doctor.specialty.toLowerCase().includes(searchLower)) return true;
+      if (doctor.hospital?.toLowerCase().includes(searchLower)) return true;
+    }
+    
+    // Search in invoice status
+    if (invoice.status.toLowerCase().includes(searchLower)) return true;
+    
+    // Search in payment method
+    if (invoice.paymentMethod?.toLowerCase().includes(searchLower)) return true;
+    
+    // Search in notes
+    if (invoice.notes?.toLowerCase().includes(searchLower)) return true;
+    
+    // Search in test names
+    const testNames = invoice.tests.map(test => test.testName).join(' ').toLowerCase();
+    if (testNames.includes(searchLower)) return true;
+    
+    // Search in amount (if search term is numeric)
+    if (!isNaN(Number(searchTerm))) {
+      const amount = Number(searchTerm);
+      if (invoice.finalAmount === amount || invoice.totalAmount === amount || invoice.amountPaid === amount) return true;
+    }
+    
+    // Search in date (if search term looks like a date)
+    const invoiceDate = new Date(invoice.createdAt).toLocaleDateString();
+    if (invoiceDate.includes(searchTerm)) return true;
+    
+    return false;
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check if patient has been selected
+    if (!formData.patientId) {
+      alert('Please select a patient from the dropdown above or add a new patient using the "Click to add new patient details" button.');
+      return;
+    }
+    
+    // Check if doctor has been selected
+    if (!formData.doctorId) {
+      alert('Please select a referring doctor from the dropdown above.');
+      return;
+    }
+    
+    // Check if tests have been added
+    if (formData.tests.length === 0) {
+      alert('Please add at least one test to the invoice.');
+      return;
+    }
+    
+    // Check if all tests have valid test IDs
+    const invalidTests = formData.tests.filter(test => !test.testId);
+    if (invalidTests.length > 0) {
+      alert('Please select valid tests for all test entries.');
+      return;
+    }
+    
     const totalAmount = formData.tests.reduce((sum, test) => sum + (test.price * test.quantity), 0);
     const finalAmount = totalAmount - formData.discount;
     const defaultDueDate = new Date();
     defaultDueDate.setDate(defaultDueDate.getDate() + 7); // 7 days from now
+    const currentUser = user;
+    const userCenterId = (currentUser as any)?.collectionCenterId as string | undefined;
+    if (!userCenterId) {
+      alert('No collection center configured for the current user. Please set a collection center in user settings.');
+      return;
+    }
     const invoiceData = {
       ...formData,
       invoiceNumber: `INV${(invoices.length + 1).toString().padStart(4, '0')}`,
@@ -87,7 +160,9 @@ const InvoiceManagement: React.FC = () => {
         method: formData.paymentMethod,
         receivedBy: user?.name || 'System',
         note: 'Initial payment'
-      }] : []
+      }] : [],
+      collectionCenterId: userCenterId,
+      cnic: formData.cnic
     };
     if (editingInvoice) {
       updateInvoice(editingInvoice.id, invoiceData);
@@ -102,17 +177,15 @@ const InvoiceManagement: React.FC = () => {
   const resetForm = () => {
     setFormData({
       patientId: '',
-      phcrNumber: '',
-      mrNumber: '',
       doctorId: '',
       tests: [],
       discount: 0,
       notes: '',
       paymentMethod: 'cash',
       amountPaid: 0,
-      sampleType: '',
       cnic: ''
     });
+    setDoctorSearchTerm('');
   };
 
   const addTestToInvoice = () => {
@@ -148,19 +221,18 @@ const InvoiceManagement: React.FC = () => {
       return;
     }
     setEditingInvoice(invoice);
+    const selectedDoctor = doctors.find(d => d.id === invoice.doctorId);
     setFormData({
       patientId: invoice.patientId,
-      phcrNumber: invoice.phcrNumber || '',
-      mrNumber: invoice.mrNumber || '',
       doctorId: invoice.doctorId,
       tests: invoice.tests,
       discount: invoice.discount,
       notes: invoice.notes || '',
       paymentMethod: invoice.paymentMethod || 'cash',
       amountPaid: invoice.amountPaid || 0,
-      sampleType: invoice.sampleType || '',
       cnic: invoice.cnic || ''
     });
+    setDoctorSearchTerm(selectedDoctor?.name || '');
     setShowAddForm(true);
   };
 
@@ -309,7 +381,7 @@ const InvoiceManagement: React.FC = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="text"
-              placeholder="Search invoices by number, patient, or doctor..."
+              placeholder="Search invoices, patients, doctors, tests, amounts, dates, status..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -333,46 +405,114 @@ const InvoiceManagement: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Patient *
+                    Patient Information *
                   </label>
-                  <select
-                    required
-                    value={formData.patientId}
-                    onChange={(e) => {
-                      if (e.target.value === 'add_new') {
-                        setShowPatientModal(true);
-                      } else {
-                        setFormData({...formData, patientId: e.target.value});
-                      }
-                    }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  
+                  {/* Patient Selection Dropdown */}
+                  <div className="mb-2">
+                    <input
+                      type="text"
+                      placeholder="Search patients by name, ID, or contact..."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
+                      onChange={(e) => {
+                        const searchTerm = e.target.value.toLowerCase();
+                        const filteredPatients = patients.filter(patient => 
+                          patient.name.toLowerCase().includes(searchTerm) ||
+                          patient.patientId.toLowerCase().includes(searchTerm) ||
+                          (patient.contact && patient.contact.toLowerCase().includes(searchTerm))
+                        );
+                        // If search term is empty, show all patients
+                        if (!searchTerm) {
+                          return;
+                        }
+                        // If only one patient matches, auto-select them
+                        if (filteredPatients.length === 1) {
+                          setFormData({...formData, patientId: filteredPatients[0].id});
+                        }
+                      }}
+                    />
+                    <select
+                      value={formData.patientId}
+                      onChange={(e) => setFormData({...formData, patientId: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select existing patient</option>
+                      {patients.map(patient => (
+                        <option key={patient.id} value={patient.id}>
+                          {patient.name} - {patient.patientId} ({patient.age} years, {patient.gender})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  {/* Add New Patient Button */}
+                  <button
+                    type="button"
+                    onClick={() => setShowPatientModal(true)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-left hover:bg-gray-50 flex items-center justify-between"
                   >
-                    <option value="">Select Patient</option>
-                    {patients.map(patient => (
-                      <option key={patient.id} value={patient.id}>
-                        {patient.name} ({patient.patientId})
-                      </option>
-                    ))}
-                    <option value="add_new">+ Add New Patient</option>
-                  </select>
+                    <span className="text-gray-500">Click to add new patient details</span>
+                    <Plus className="w-4 h-4 text-gray-400" />
+                  </button>
+                  
+                  {/* Show selected patient info */}
+                  {formData.patientId && (
+                    <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="text-sm text-blue-800">
+                        <strong>Selected:</strong> {patients.find(p => p.id === formData.patientId)?.name || 'Unknown Patient'}
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Referring Doctor *
                   </label>
-                  <select
-                    required
-                    value={formData.doctorId}
-                    onChange={(e) => setFormData({...formData, doctorId: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select Doctor</option>
-                    {doctors.filter(d => d.isActive).map(doctor => (
-                      <option key={doctor.id} value={doctor.id}>
-                        {doctor.name} - {doctor.specialty}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search doctors by name or specialty..."
+                      value={doctorSearchTerm}
+                      onChange={(e) => setDoctorSearchTerm(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
+                    />
+                    <div className="max-h-48 overflow-y-auto border border-gray-300 rounded-lg bg-white">
+                      {doctors
+                        .filter(d => d.isActive)
+                        .filter(doctor => 
+                          doctor.name.toLowerCase().includes(doctorSearchTerm.toLowerCase()) ||
+                          doctor.specialty.toLowerCase().includes(doctorSearchTerm.toLowerCase()) ||
+                          doctor.hospital?.toLowerCase().includes(doctorSearchTerm.toLowerCase())
+                        )
+                        .map(doctor => (
+                          <div
+                            key={doctor.id}
+                            onClick={() => {
+                              setFormData({...formData, doctorId: doctor.id});
+                              setDoctorSearchTerm(doctor.name);
+                            }}
+                            className={`px-3 py-2 cursor-pointer hover:bg-blue-50 border-b border-gray-100 ${
+                              formData.doctorId === doctor.id ? 'bg-blue-100' : ''
+                            }`}
+                          >
+                            <div className="font-medium text-gray-900">{doctor.name}</div>
+                            <div className="text-sm text-gray-600">{doctor.specialty}</div>
+                            {doctor.hospital && (
+                              <div className="text-xs text-gray-500">{doctor.hospital}</div>
+                            )}
+                          </div>
+                        ))}
+                      {doctors.filter(d => d.isActive).filter(doctor => 
+                        doctor.name.toLowerCase().includes(doctorSearchTerm.toLowerCase()) ||
+                        doctor.specialty.toLowerCase().includes(doctorSearchTerm.toLowerCase()) ||
+                        doctor.hospital?.toLowerCase().includes(doctorSearchTerm.toLowerCase())
+                      ).length === 0 && doctorSearchTerm && (
+                        <div className="px-3 py-2 text-gray-500 text-sm">
+                          No doctors found matching "{doctorSearchTerm}"
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -443,25 +583,7 @@ const InvoiceManagement: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">PHCR#</label>
-                  <input type="text" value={formData.phcrNumber} disabled className="w-full px-3 py-2 border rounded-lg bg-gray-100 text-gray-500" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">MR No</label>
-                  <input type="text" value={formData.mrNumber} disabled className="w-full px-3 py-2 border rounded-lg bg-gray-100 text-gray-500" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Sample Type
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.sampleType}
-                    onChange={(e) => setFormData({...formData, sampleType: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     CNIC
@@ -844,23 +966,37 @@ const InvoiceManagement: React.FC = () => {
               if (!newPatientData.age.trim() || isNaN(Number(newPatientData.age))) return setPatientFormError('Valid age is required');
               setPatientFormLoading(true);
               try {
+                // Generate a unique ID for the new patient
+                const newPatientId = `P${(patients.length + 1).toString().padStart(5, '0')}`;
+                
                 const patient = {
                   ...newPatientData,
                   age: parseInt(newPatientData.age),
                   gender: newPatientData.gender as "male" | "female" | "other",
                   createdBy: user?.id || '',
-                  patientId: `P${(patients.length + 1).toString().padStart(5, '0')}`,
+                  patientId: newPatientId,
+                  // collectionCenterId will be taken from user/session or selected elsewhere
                 };
-                await addPatient(patient);
+                
+                // Add the patient (requires a collection center)
+                const currentUser = user as any;
+                const userCenterId = currentUser?.collectionCenterId as string | undefined;
+                if (!userCenterId) {
+                  setPatientFormError('No collection center configured for current user.');
+                  setPatientFormLoading(false);
+                  return;
+                }
+                addPatient({ ...patient, collectionCenterId: userCenterId });
+                
+                // Close modal and reset form
                 setShowPatientModal(false);
                 setNewPatientData({ name: '', age: '', gender: 'male', contact: '', address: '' });
                 setShowPatientToast(true);
                 setTimeout(() => setShowPatientToast(false), 2500);
-                // Pre-select the new patient (find by name and contact)
-                setTimeout(() => {
-                  const added = patients.find(p => p.name === patient.name && p.contact === patient.contact);
-                  if (added) setFormData(f => ({ ...f, patientId: added.id }));
-                }, 100);
+                
+                // Set the patient ID in the form data using the generated ID
+                setFormData(f => ({ ...f, patientId: newPatientId }));
+                
               } catch (err) {
                 setPatientFormError('Failed to add patient. Please try again.');
               } finally {
@@ -914,17 +1050,7 @@ const InvoiceManagement: React.FC = () => {
           <div className="bg-white rounded-2xl p-8 shadow-2xl flex flex-col items-center max-w-xs w-full animate-pop-in">
             <h3 className="text-lg font-bold text-gray-900 mb-2">Invoice QR Code</h3>
             <div style={{ background: '#fff', padding: 16, borderRadius: 16, border: '4px solid #e9d5ff', boxShadow: '0 2px 8px #0001', marginBottom: 16 }}>
-              <QRCode value={qrInvoice && qrPatient ? JSON.stringify({
-                invoiceNumber: qrInvoice.invoiceNumber,
-                amount: qrInvoice.finalAmount,
-                status: qrInvoice.status,
-                date: qrInvoice.createdAt,
-                patient: {
-                  name: qrPatient.name,
-                  phone: qrPatient.contact,
-                  id: qrPatient.id
-                }
-              }) : ''} size={256} bgColor="#fff" fgColor="#1e293b" level="H" />
+              <div id="qr-code-container"></div>
             </div>
             <div className="flex space-x-3 mt-2">
               <button onClick={handleDownloadQR} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Download</button>

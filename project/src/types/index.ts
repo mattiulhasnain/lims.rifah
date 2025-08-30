@@ -9,9 +9,27 @@ export interface User {
   isActive: boolean;
   createdAt: Date;
   lastLogin?: Date;
+  collectionCenterId?: string; // NEW: Link user to specific collection center
 }
 
-export type UserRole = 'admin' | 'dev' | 'receptionist' | 'student' | 'manager' | 'technician' | 'pathologist' | 'accountant' | 'qc' | 'filemanager' | 'backup' | 'analytics' | 'staff' | 'appointments';
+// NEW: Collection Center interface
+export interface CollectionCenter {
+  id: string;
+  name: string;
+  code: string; // Short code like "CC001", "CC002"
+  address: string;
+  city: string;
+  contact: string;
+  email?: string;
+  managerId?: string; // Link to user who manages this center
+  isActive: boolean;
+  createdAt: Date;
+  openingHours?: string;
+  services?: string[]; // What services this center offers
+  commissionRate?: number; // Commission rate for this center
+}
+
+export type UserRole = 'admin' | 'dev' | 'receptionist' | 'student' | 'manager' | 'technician' | 'pathologist' | 'accountant' | 'qc' | 'filemanager' | 'backup' | 'analytics' | 'staff' | 'appointments' | 'lab_helper' | 'center_manager';
 
 export interface Permission {
   module: string;
@@ -40,6 +58,7 @@ export interface Patient {
   visitCount: number;
   totalBilled: number;
   pendingDues: number;
+  collectionCenterId: string; // NEW: Which collection center this patient belongs to
 }
 
 export interface Doctor {
@@ -58,6 +77,12 @@ export interface Doctor {
   totalRevenue: number;
 }
 
+export interface TestParameterTemplate {
+  name: string;
+  normalRange: string;
+  unit?: string;
+}
+
 export interface Test {
   id: string;
   name: string;
@@ -70,6 +95,11 @@ export interface Test {
   createdAt: Date;
   sampleRequired?: string; // NEW
   deliveryTime?: string;   // NEW
+  // Templates for multi-parameter tests
+  parameterTemplates?: TestParameterTemplate[];
+  // Narrative-style reports (e.g., PCR)
+  isNarrative?: boolean;
+  narrativeTemplate?: string;
 }
 
 export interface TestProfile {
@@ -103,6 +133,7 @@ export interface Invoice {
   isLocked: boolean;
   sampleType?: string;
   cnic?: string;
+  collectionCenterId: string; // NEW: Which collection center this invoice belongs to
 }
 
 export interface PaymentRecord {
@@ -137,6 +168,7 @@ export interface Report {
   templateId?: string;
   interpretation?: string;
   criticalValues: boolean;
+  collectionCenterId: string; // NEW: Which collection center this report belongs to
 }
 
 export interface ReportStatusHistory {
@@ -151,6 +183,15 @@ export interface ReportComment {
   createdAt: Date;
 }
 
+export interface ReportTestParameter {
+  name: string;
+  result: string;
+  normalRange: string;
+  unit?: string;
+  isAbnormal: boolean;
+  isCritical?: boolean;
+}
+
 export interface ReportTest {
   testId: string;
   testName: string;
@@ -158,6 +199,8 @@ export interface ReportTest {
   normalRange: string;
   isAbnormal: boolean;
   unit?: string;
+  // Optional: some tests consist of multiple parameters/analytes
+  parameters?: ReportTestParameter[];
   // Added for advanced reporting/flagging
   isCritical?: boolean;
   abnormalParams?: string[];
@@ -213,6 +256,7 @@ export interface AuditLog {
   timestamp: Date;
   ipAddress?: string;
   userAgent?: string;
+  collectionCenterId?: string;
 }
 
 export interface Dashboard {
@@ -223,6 +267,23 @@ export interface Dashboard {
   pendingReports: number;
   lowStockItems: number;
   recentActivities: AuditLog[];
+  // NEW: Collection center specific data
+  collectionCenters: CollectionCenterSummary[];
+}
+
+// NEW: Collection center summary for dashboard
+export interface CollectionCenterSummary {
+  centerId: string;
+  centerName: string;
+  centerCode: string;
+  totalPatients: number;
+  todayPatients: number;
+  totalRevenue: number;
+  todayRevenue: number;
+  pendingReports: number;
+  completedReports: number;
+  monthlyRevenue: number;
+  yearlyRevenue: number;
 }
 
 // New interfaces for additional features
@@ -258,17 +319,13 @@ export interface QCRecord {
   id: string;
   testId: string;
   testName: string;
-  controlLevel: 'Level 1' | 'Level 2' | 'Level 3';
-  expectedValue: number;
-  actualValue: number;
+  level: 'low' | 'normal' | 'high';
+  controlName: string;
+  value: number;
   unit: string;
-  tolerance: number;
-  isWithinRange: boolean;
-  performedBy: string;
-  performedAt: Date;
-  instrumentId?: string;
-  batchNumber?: string;
-  notes?: string;
+  date: Date;
+  instrument?: string;
+  createdBy: string;
 }
 
 export interface CalibrationRecord {
